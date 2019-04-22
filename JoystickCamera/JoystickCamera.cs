@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ColossalFramework.UI;
 using ICities;
 using UnityEngine;
+using static JoystickCamera.JoystickInputDef;
 
 namespace JoystickCamera {
 	public class JoystickCamera: ThreadingExtensionBase, IUserMod {
@@ -39,26 +40,48 @@ namespace JoystickCamera {
 		}
 
 		protected void AddDefaultInputs() {
-			inputs.Add(new JoystickInputDef {
-				axis = JoystickInputDef.Axis.HORIZONTAL,
-				speed = 100,
-				output = JoystickInputDef.Output.CAMERA_MOVE_X,
-			});
-			inputs.Add(new JoystickInputDef {
-				axis = JoystickInputDef.Axis.VERTICAL,
-				speed = 100,
-				output = JoystickInputDef.Output.CAMERA_MOVE_Z,
-			});
-			inputs.Add(new JoystickInputDef {
-				axis = JoystickInputDef.Axis.ROTATION_HORIZONTAL_CAMERA,
-				speed = 5,
-				output = JoystickInputDef.Output.CAMERA_TURN_X,
-			});
-			inputs.Add(new JoystickInputDef {
-				axis = JoystickInputDef.Axis.ROTATION_VERTICAL_CAMERA,
-				speed = 5,
-				output = JoystickInputDef.Output.CAMERA_ZOOM,
-			});
+			inputs.Add(new JoystickInputDef(
+				axis: JoystickInputDef.Axis.HORIZONTAL,
+				output: JoystickInputDef.Output.CAMERA_MOVE_X,
+				speed: 100,
+				modifiers: new Modifier[] {
+					new Modifier(ModifierButton.SHIFT_ANY, ModifierCondition.NOT_HELD),
+				}
+			));
+			inputs.Add(new JoystickInputDef(
+				axis: JoystickInputDef.Axis.VERTICAL,
+				output: JoystickInputDef.Output.CAMERA_MOVE_Z,
+				speed: 100,
+				modifiers: new Modifier[] {
+					new Modifier(ModifierButton.SHIFT_ANY, ModifierCondition.NOT_HELD),
+				}
+			));
+			inputs.Add(new JoystickInputDef(
+				axis: JoystickInputDef.Axis.ROTATION_HORIZONTAL_CAMERA,
+				output: JoystickInputDef.Output.CAMERA_TURN_X,
+				speed: 5
+			));
+			inputs.Add(new JoystickInputDef(
+				axis: JoystickInputDef.Axis.ROTATION_VERTICAL_CAMERA,
+				output: JoystickInputDef.Output.CAMERA_ZOOM,
+				speed: 5
+			));
+			inputs.Add(new JoystickInputDef(
+				axis: JoystickInputDef.Axis.HORIZONTAL,
+				output: JoystickInputDef.Output.CAMERA_MOVE_EW,
+				speed: 100,
+				modifiers: new Modifier[] {
+					new Modifier(ModifierButton.SHIFT_ANY, ModifierCondition.HELD),
+				}
+			));
+			inputs.Add(new JoystickInputDef(
+				axis: JoystickInputDef.Axis.VERTICAL,
+				output: JoystickInputDef.Output.CAMERA_MOVE_NS,
+				speed: 100,
+				modifiers: new Modifier[] {
+					new Modifier(ModifierButton.SHIFT_ANY, ModifierCondition.HELD),
+				}
+			));
 		}
 
 		#region logging
@@ -119,6 +142,27 @@ namespace JoystickCamera {
 			base.OnReleased();
 		}
 
+		protected Dictionary<ModifierButton, bool> GetModifiers() {
+			var modifiers = new Dictionary<ModifierButton, bool> {
+				{ ModifierButton.SHIFT_LEFT, Input.GetKey(KeyCode.LeftShift) },
+				{ ModifierButton.SHIFT_RIGHT, Input.GetKey(KeyCode.RightShift) },
+				{ ModifierButton.CTRL_LEFT, Input.GetKey(KeyCode.LeftControl) },
+				{ ModifierButton.CTRL_RIGHT, Input.GetKey(KeyCode.RightControl) },
+				{ ModifierButton.ALT_LEFT, Input.GetKey(KeyCode.LeftAlt) },
+				{ ModifierButton.ALT_RIGHT, Input.GetKey(KeyCode.RightAlt) },
+				{ ModifierButton.CMD_LEFT, Input.GetKey(KeyCode.LeftCommand) },
+				{ ModifierButton.CMD_RIGHT, Input.GetKey(KeyCode.RightCommand) },
+				{ ModifierButton.WIN_LEFT, Input.GetKey(KeyCode.LeftWindows) },
+				{ ModifierButton.WIN_RIGHT, Input.GetKey(KeyCode.RightWindows) }
+			};
+			modifiers[ModifierButton.SHIFT_ANY] = modifiers[ModifierButton.SHIFT_LEFT] || modifiers[ModifierButton.SHIFT_RIGHT];
+			modifiers[ModifierButton.CTRL_ANY] = modifiers[ModifierButton.CTRL_LEFT] || modifiers[ModifierButton.CTRL_RIGHT];
+			modifiers[ModifierButton.ALT_ANY] = modifiers[ModifierButton.ALT_LEFT] || modifiers[ModifierButton.ALT_RIGHT];
+			modifiers[ModifierButton.CMD_ANY] = modifiers[ModifierButton.CMD_LEFT] || modifiers[ModifierButton.CMD_RIGHT];
+			modifiers[ModifierButton.WIN_ANY] = modifiers[ModifierButton.WIN_LEFT] || modifiers[ModifierButton.WIN_RIGHT];
+			return modifiers;
+		}
+
 		/// <summary>
 		/// Called once per rendered frame.
 		/// Thread: Main
@@ -140,37 +184,38 @@ namespace JoystickCamera {
 			//so you can use both.
 
 			float t = realTimeDelta * 60; //should be ~1/60 of a second
-			Vector3 translateRelative = new Vector3(); //screen relative movement
-			Vector3 translateWorld = new Vector3(); //compass movement
-			Vector2 rotate = new Vector2();
+			Vector3 translateRelative = new Vector3(0, 0, 0); //screen relative movement
+			Vector3 translateWorld = new Vector3(0, 0, 0); //compass movement
+			Vector2 rotate = new Vector2(0, 0);
 			float zoom = 0;
+			var modifiers = GetModifiers();
 
 			foreach(JoystickInputDef input in this.inputs) {
-				float v = input.Read() * t;
+				float v = input.Read(modifiers) * t;
 				switch(input.output) {
 					case JoystickInputDef.Output.CAMERA_MOVE_X:
-						translateRelative.x = v;
+						translateRelative.x += v;
 						break;
 					case JoystickInputDef.Output.CAMERA_MOVE_Y:
-						translateRelative.y = v;
+						translateRelative.y += v;
 						break;
 					case JoystickInputDef.Output.CAMERA_MOVE_Z:
-						translateRelative.z = v;
+						translateRelative.z += v;
 						break;
 					case JoystickInputDef.Output.CAMERA_MOVE_NS:
-						translateWorld.x = v;
+						translateWorld.x += v;
 						break;
 					case JoystickInputDef.Output.CAMERA_MOVE_EW:
-						translateWorld.z = v;
+						translateWorld.z += v;
 						break;
 					case JoystickInputDef.Output.CAMERA_ZOOM:
-						zoom = v;
+						zoom += v;
 						break;
 					case JoystickInputDef.Output.CAMERA_TURN_X:
-						rotate.x = v;
+						rotate.x += v;
 						break;
 					case JoystickInputDef.Output.CAMERA_TURN_Y:
-						rotate.y = v;
+						rotate.y += v;
 						break;
 				}
 			}
