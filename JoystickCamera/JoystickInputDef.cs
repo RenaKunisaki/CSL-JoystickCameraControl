@@ -16,10 +16,10 @@ namespace JoystickCamera {
 			CAMERA_TURN_X,
 			CAMERA_TURN_Y,
 		};
-		public readonly string[] OutputName = {
+		public static readonly string[] OutputName = {
 			"Move Left/Right",
-			"Move Forward/Backward",
 			"Move Up/Down",
+			"Move Forward/Backward",
 			"Move North/South",
 			"Move East/West",
 			"Zoom In/Out",

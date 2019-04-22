@@ -9,21 +9,7 @@ namespace JoystickCamera {
 		public string Name => "Joystick Camera Control";
 		public string Description => "Use a joystick to control the camera.";
 		public readonly float PI_OVER_180 = Mathf.PI / 180f;
-
 		protected List<JoystickInputDef> inputs;
-		/* protected float speedX = 100, speedY = 100, speedZ = 100; //How fast to move
-		protected float speedRX = 5, speedRY = 5, speedZoom = 5;
-		protected float signX = 1, signY = 1, signZ = 1;
-		protected float signRX = 1, signRY = 1, signZoom = 1;
-		protected float deadX = 0, deadY = 0, deadZ = 0;
-		protected float deadRX = 0, deadRY = 0, deadZoom = 0;
-		protected int axisX = 1; //horizontal
-		protected int axisY = 2; //vertical
-		protected int axisZ = 0; //none
-		protected int axisRX = 3; //rotation horizontal
-		protected int axisRY = 0; //none
-		protected int axisZoom = 4; //rotation vertical
-		protected bool worldRelative = false; */
 
 		public JoystickCamera() {
 			Log("Instantiated");
@@ -51,7 +37,7 @@ namespace JoystickCamera {
 			inputs.Add(new JoystickInputDef {
 				axis = JoystickInputDef.Axis.VERTICAL,
 				speed = 100,
-				output = JoystickInputDef.Output.CAMERA_MOVE_Y,
+				output = JoystickInputDef.Output.CAMERA_MOVE_Z,
 			});
 			inputs.Add(new JoystickInputDef {
 				axis = JoystickInputDef.Axis.ROTATION_HORIZONTAL_CAMERA,
@@ -165,7 +151,7 @@ namespace JoystickCamera {
 						translateWorld.x = v;
 						break;
 					case JoystickInputDef.Output.CAMERA_MOVE_EW:
-						translateWorld.y = v;
+						translateWorld.z = v;
 						break;
 					case JoystickInputDef.Output.CAMERA_ZOOM:
 						zoom = v;
