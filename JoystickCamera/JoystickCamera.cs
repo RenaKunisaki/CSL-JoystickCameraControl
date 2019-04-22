@@ -1,22 +1,68 @@
 ﻿using System;
+using System.Collections.Generic;
 using ColossalFramework.UI;
 using ICities;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 namespace JoystickCamera {
 	public class JoystickCamera: ThreadingExtensionBase, IUserMod {
 		public string Name => "Joystick Camera Control";
 		public string Description => "Use a joystick to control the camera.";
-		protected float movementSpeed = 100; //How fast to move
-		protected float signX = 1, signY = 1;
-		protected float deadZone = 0;
-		protected string axisNameX = "Horizontal";
-		protected string axisNameY = "Vertical";
-		protected bool worldRelative = false;
+		public readonly float PI_OVER_180 = Mathf.PI / 180f;
+
+		protected List<JoystickInputDef> inputs;
+		/* protected float speedX = 100, speedY = 100, speedZ = 100; //How fast to move
+		protected float speedRX = 5, speedRY = 5, speedZoom = 5;
+		protected float signX = 1, signY = 1, signZ = 1;
+		protected float signRX = 1, signRY = 1, signZoom = 1;
+		protected float deadX = 0, deadY = 0, deadZ = 0;
+		protected float deadRX = 0, deadRY = 0, deadZoom = 0;
+		protected int axisX = 1; //horizontal
+		protected int axisY = 2; //vertical
+		protected int axisZ = 0; //none
+		protected int axisRX = 3; //rotation horizontal
+		protected int axisRY = 0; //none
+		protected int axisZoom = 4; //rotation vertical
+		protected bool worldRelative = false; */
 
 		public JoystickCamera() {
 			Log("Instantiated");
+
+			//Fun fact: this mod could be reduced to approximately one line:
+			//cameraController.m_analogController = true;
+			//This activates a built-in but apparently hidden analog mode.
+			//But, that mode isn't configurable, and has some issues
+			//(eg I can zoom out but not in).
+
+			inputs = new List<JoystickInputDef>();
+			AddDefaultInputs();
+		}
+
+		public List<JoystickInputDef> GetInputs() {
+			return inputs;
+		}
+
+		protected void AddDefaultInputs() {
+			inputs.Add(new JoystickInputDef {
+				axis = JoystickInputDef.Axis.HORIZONTAL,
+				speed = 100,
+				output = JoystickInputDef.Output.CAMERA_MOVE_X,
+			});
+			inputs.Add(new JoystickInputDef {
+				axis = JoystickInputDef.Axis.VERTICAL,
+				speed = 100,
+				output = JoystickInputDef.Output.CAMERA_MOVE_Y,
+			});
+			inputs.Add(new JoystickInputDef {
+				axis = JoystickInputDef.Axis.ROTATION_HORIZONTAL_CAMERA,
+				speed = 5,
+				output = JoystickInputDef.Output.CAMERA_TURN_X,
+			});
+			inputs.Add(new JoystickInputDef {
+				axis = JoystickInputDef.Axis.ROTATION_VERTICAL_CAMERA,
+				speed = 5,
+				output = JoystickInputDef.Output.CAMERA_ZOOM,
+			});
 		}
 
 		#region logging
@@ -47,28 +93,7 @@ namespace JoystickCamera {
 		/// </summary>
 		/// <param name="helper">UI Helper.</param>
 		public void OnSettingsUI(UIHelperBase helper) {
-			UIHelperBase group = helper.AddGroup("Camera Control");
-			group.AddSlider("Movement Speed",
-				min: 1, max: 1000, step: 10, defaultValue: this.movementSpeed,
-				eventCallback: (val) => this.movementSpeed = val);
-			group.AddCheckbox("Invert X axis", this.signX < 0 ? true : false,
-				(isChecked) => this.signX = isChecked ? -1 : 1);
-			group.AddCheckbox("Invert Y axis", this.signY < 0 ? true : false,
-				(isChecked) => this.signY = isChecked ? -1 : 1);
-			group.AddSlider("Dead Zone",
-				min: 0, max: 100, step: 1, defaultValue: this.deadZone,
-				eventCallback: (val) => this.deadZone = val / 100);
-			group.AddTextfield("X Axis Name",
-				defaultContent: this.axisNameX,
-				eventChangedCallback: (text) => { },
-				eventSubmittedCallback: (text) => this.axisNameX = text);
-			group.AddTextfield("Y Axis Name",
-				defaultContent: this.axisNameY,
-				eventChangedCallback: (text) => { },
-				eventSubmittedCallback: (text) => this.axisNameY = text);
-			//XXX how the heck do we get a list of valid axis names?
-			group.AddCheckbox("Move Relative to Screen", !this.worldRelative,
-				(isChecked) => this.worldRelative = !isChecked);
+			new SettingsPanel(this, helper).Run();
 		}
 
 		#endregion Settings UI
@@ -109,36 +134,65 @@ namespace JoystickCamera {
 			GameObject gameObject = GameObject.FindGameObjectWithTag("MainCamera");
 			if(gameObject == null) return;
 
+			//XXX add modifiers when holding shift, joy button, etc.
+			//maybe even buttons to jump to camera positions?
+			//settings per joystick?
+			//could also bind buttons to game actions, but Steam already
+			//lets you do that by binding them to keys...
+			//maybe useful if you don't want a key
+			//also, have world-relative movement be a separate axis,
+			//so you can use both.
 
-			float x = Input.GetAxis(this.axisNameX);
-			float y = Input.GetAxis(this.axisNameY);
-			if(x > -deadZone && x < deadZone) x = 0;
-			if(y > -deadZone && y < deadZone) y = 0;
-			//Multiply time delta by 60 since it should be ~ 1/60 of a second
-			Vector2 translate = new Vector2(
-				x * movementSpeed * signX * (realTimeDelta * 60),
-				y * movementSpeed * signY * (realTimeDelta * 60));
+			float t = realTimeDelta * 60; //should be ~1/60 of a second
+			Vector3 translateRelative = new Vector3(); //screen relative movement
+			Vector3 translateWorld = new Vector3(); //compass movement
+			Vector2 rotate = new Vector2();
+			float zoom = 0;
+
+			foreach(JoystickInputDef input in this.inputs) {
+				float v = input.Read() * t;
+				switch(input.output) {
+					case JoystickInputDef.Output.CAMERA_MOVE_X:
+						translateRelative.x = v;
+						break;
+					case JoystickInputDef.Output.CAMERA_MOVE_Y:
+						translateRelative.y = v;
+						break;
+					case JoystickInputDef.Output.CAMERA_MOVE_Z:
+						translateRelative.z = v;
+						break;
+					case JoystickInputDef.Output.CAMERA_MOVE_NS:
+						translateWorld.x = v;
+						break;
+					case JoystickInputDef.Output.CAMERA_MOVE_EW:
+						translateWorld.y = v;
+						break;
+					case JoystickInputDef.Output.CAMERA_ZOOM:
+						zoom = v;
+						break;
+					case JoystickInputDef.Output.CAMERA_TURN_X:
+						rotate.x = v;
+						break;
+					case JoystickInputDef.Output.CAMERA_TURN_Y:
+						rotate.y = v;
+						break;
+				}
+			}
 
 			CameraController cameraController = gameObject.GetComponent<CameraController>();
 			Vector3 currentPos = cameraController.m_currentPosition;
 			Vector3 targetPos = currentPos;
+			translateRelative = cameraController.transform.localToWorldMatrix.MultiplyVector(translateRelative);
 
-			if(worldRelative) {
-				targetPos.x += translate.x;
-				targetPos.z += translate.y;
-			}
-			else {
-				float cameraAngle = cameraController.m_currentAngle.x * Mathf.PI / 180f;
-
-				Vector2 vectorWithAngle;
-				vectorWithAngle.x = translate.x * Mathf.Cos(cameraAngle) - translate.y * Mathf.Sin(cameraAngle);
-				vectorWithAngle.y = translate.x * Mathf.Sin(cameraAngle) + translate.y * Mathf.Cos(cameraAngle);
-
-				targetPos.x -= vectorWithAngle.x;
-				targetPos.z += vectorWithAngle.y;
-			}
+			targetPos.x += translateRelative.x + translateWorld.x;
+			targetPos.y += translateRelative.y + translateWorld.y;
+			targetPos.z += translateRelative.z + translateWorld.z;
 
 			cameraController.m_targetPosition = targetPos;
+			cameraController.m_targetAngle.x += rotate.x;
+			cameraController.m_targetAngle.y += rotate.y;
+			cameraController.m_targetSize += zoom;
+			//cameraController.m_targetHeight += translateWorld.z;
 		}
 
 		#endregion ThreadingExtensionBase
