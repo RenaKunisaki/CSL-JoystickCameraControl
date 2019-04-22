@@ -28,6 +28,16 @@ namespace JoystickCamera {
 			return inputs;
 		}
 
+		public JoystickInputDef AddInput() {
+			JoystickInputDef input = new JoystickInputDef();
+			inputs.Add(input);
+			return input;
+		}
+
+		public void RemoveInput(JoystickInputDef input) {
+			inputs.Remove(input);
+		}
+
 		protected void AddDefaultInputs() {
 			inputs.Add(new JoystickInputDef {
 				axis = JoystickInputDef.Axis.HORIZONTAL,

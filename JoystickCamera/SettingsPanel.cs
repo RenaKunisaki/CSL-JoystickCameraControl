@@ -25,6 +25,10 @@ namespace JoystickCamera {
 				"   direction is forward; probably you want Zoom instead.\n" +
 				"   to fix it, turn back the other way or do a full circle.";
 
+			groupG.AddButton("Add New Input", () => {
+				AddInput(parent.AddInput());
+			});
+
 			foreach(JoystickInputDef input in parent.GetInputs()) {
 				AddInput(input);
 			}
@@ -33,27 +37,39 @@ namespace JoystickCamera {
 		protected void AddInput(JoystickInputDef input) {
 			UIHelperBase group = helper.AddGroup("Input");
 
-			group.AddDropdown("Input Axis", JoystickInputDef.axisNames,
+			(group.AddDropdown("Input Axis", JoystickInputDef.axisNames,
 				(int)input.axis,
-				(sel) => input.axis = (JoystickInputDef.Axis)sel);
+				(sel) => input.axis = (JoystickInputDef.Axis)sel) as UIComponent)
+				.tooltip = "Which joystick input to use";
 
-			group.AddDropdown("Output Axis", JoystickInputDef.OutputName,
+			(group.AddDropdown("Output Axis", JoystickInputDef.OutputName,
 				(int)input.output,
-				(sel) => input.output = (JoystickInputDef.Output)sel);
+				(sel) => input.output = (JoystickInputDef.Output)sel) as UIComponent)
+				.tooltip = "Which output to control";
 
-			group.AddSlider("Movement Speed",
+			(group.AddSlider("Movement Speed",
 				min: input.minSpeed,
 				max: input.maxSpeed,
 				step: input.speedStep,
 				defaultValue: input.speed,
-				eventCallback: (val) => input.speed = val);
+				eventCallback: (val) => input.speed = val) as UIComponent)
+				.tooltip = "How fast the camera should move";
 
-			group.AddCheckbox("Invert", input.sign < 0 ? true : false,
-				(isChecked) => input.sign = isChecked ? -1 : 1);
+			(group.AddCheckbox("Invert", input.sign < 0 ? true : false,
+				(isChecked) => input.sign = isChecked ? -1 : 1) as UIComponent)
+				.tooltip = "Move in opposite direction";
 
-			group.AddSlider("Dead Zone",
+			(group.AddSlider("Dead Zone",
 				min: 0, max: 100, step: 1, defaultValue: input.deadZone * 100,
-				eventCallback: (val) => input.deadZone = val / 100);
+				eventCallback: (val) => input.deadZone = val / 100) as UIComponent)
+				.tooltip = "Ignore movements less than this magnitude";
+
+			group.AddButton("Delete This Input", () => {
+				parent.RemoveInput(input);
+				(group as UIComponent).Hide();
+				((helper as UIHelper).self as UIComponent).RemoveUIComponent(
+					group as UIComponent);
+			});
 		}
 	}
 }
