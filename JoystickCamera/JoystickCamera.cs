@@ -43,10 +43,10 @@ namespace JoystickCamera {
 			inputs.Add(new JoystickInputDef(
 				axis: JoystickInputDef.Axis.HORIZONTAL,
 				output: JoystickInputDef.Output.CAMERA_MOVE_X,
-				speed: 100
-			/* modifiers: new Modifier[] {
-				new Modifier(ModifierButton.SHIFT_ANY, ModifierCondition.NOT_HELD),
-			} */
+				speed: 100,
+				modifiers: new Modifier[] {
+					new Modifier(ModifierButton.SHIFT_ANY, ModifierCondition.NOT_HELD),
+				}
 			));
 			inputs.Add(new JoystickInputDef(
 				axis: JoystickInputDef.Axis.VERTICAL,
