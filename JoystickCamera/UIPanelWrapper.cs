@@ -5,6 +5,9 @@ using UnityEngine;
 
 //Much of this copied from https://github.com/tomarus/cs-terraingen/blob/master/TerrainUI.cs
 namespace JoystickCamera {
+	/// <summary>
+	/// A custom checkbox widget. Used because it's easier than the default one.
+	/// </summary>
 	public class UICustomCheckbox: UISprite {
 		public UICustomCheckbox() {
 			this.eventClicked += (component, eventParam) => {
@@ -20,6 +23,9 @@ namespace JoystickCamera {
 		}
 	}
 
+	/// <summary>
+	/// A custom slider widget. Used for the current value display.
+	/// </summary>
 	public class UICustomSlider: UISlider {
 		public delegate void OnUpdateDelegate();
 		public OnUpdateDelegate OnUpdate;
@@ -29,10 +35,22 @@ namespace JoystickCamera {
 		}
 	}
 
+	/// <summary>
+	/// A wrapper for UIPanel that provides some helpful methods.
+	/// </summary>
 	public class UIPanelWrapper {
 		protected UIPanel panel;
 		protected List<UIComponent> children;
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="T:JoystickCamera.UIPanelWrapper"/> class.
+		/// </summary>
+		/// <param name="panel">Panel to wrap.</param>
+		/// <param name="name">Panel name, for internal identification.</param>
+		/// <param name="x">Relative X coord of panel in its parent.</param>
+		/// <param name="y">Relative Y coord of panel in its parent.</param>
+		/// <param name="width">Panel width.</param>
+		/// <param name="height">Panel height.</param>
 		public UIPanelWrapper(UIPanel panel, string name, int x, int y, int width, int height) {
 			this.panel = panel;
 			this.children = new List<UIComponent>();
@@ -43,11 +61,17 @@ namespace JoystickCamera {
 			this.height = height;
 			panel.isEnabled = true;
 			panel.isVisible = true;
-			//panel.backgroundSprite = "OptionsDropbox";
+			//panel.backgroundSprite = "OptionsDropbox"; //debug
 			//panel.autoSize = true;
 		}
 
+		/// <summary>
+		/// The underlying UIPanel.
+		/// </summary>
+		/// <value>The panel.</value>
 		public UIPanel Panel => this.panel;
+
+		//These voilate naming convention to match the UIPanel names.
 		public Vector3 relativePosition {
 			get => this.panel.relativePosition;
 			set => this.panel.relativePosition = value;
@@ -61,6 +85,15 @@ namespace JoystickCamera {
 			set => this.panel.height = value;
 		}
 
+		/// <summary>
+		/// Add a sub-panel to this panel.
+		/// </summary>
+		/// <returns>The panel.</returns>
+		/// <param name="name">Sub-panel name, for internal identification.</param>
+		/// <param name="x">X coord of sub-panel in the panel.</param>
+		/// <param name="y">Y coord of sub-panel in the panel.</param>
+		/// <param name="width">Sub-panel width.</param>
+		/// <param name="height">Sub-panel height.</param>
 		public UIPanelWrapper AddPanel(string name, int x, int y, int width, int height) {
 			UIPanel subPanel = panel.AddUIComponent<UIPanel>();
 			var wrapper = new UIPanelWrapper(subPanel, name, x, y, width, height);
@@ -68,6 +101,13 @@ namespace JoystickCamera {
 			return wrapper;
 		}
 
+		/// <summary>
+		/// Add a label.
+		/// </summary>
+		/// <returns>The label.</returns>
+		/// <param name="text">Text.</param>
+		/// <param name="x">X coord of label in the panel.</param>
+		/// <param name="y">Y coord of label in the panel.</param>
 		public UILabel AddLabel(string text, int x, int y) {
 			UILabel label = panel.AddUIComponent<UILabel>();
 			this.children.Add(label);
@@ -76,6 +116,16 @@ namespace JoystickCamera {
 			return label;
 		}
 
+		/// <summary>
+		/// Add a button.
+		/// </summary>
+		/// <returns>The button.</returns>
+		/// <param name="text">Button text.</param>
+		/// <param name="x">X coord of button in the panel.</param>
+		/// <param name="y">Y coord of button in the panel.</param>
+		/// <param name="width">Button width.</param>
+		/// <param name="height">Button height.</param>
+		/// <param name="tooltip">Tooltip text displayed on hover.</param>
 		public UIButton AddButton(string text, int x, int y, int width,
 		int height = 20, string tooltip = "") {
 			UIButton button = panel.AddUIComponent<UIButton>();
@@ -94,9 +144,22 @@ namespace JoystickCamera {
 			return button;
 		}
 
+		/// <summary>
+		/// Add a dropdown list.
+		/// </summary>
+		/// <returns>The dropdown.</returns>
+		/// <param name="name">Name, for internal identification.</param>
+		/// <param name="x">X coord of dropdown in panel.</param>
+		/// <param name="y">Y coord of dropdown in panel.</param>
+		/// <param name="items">Items to display.</param>
+		/// <param name="tooltip">Tooltip text.</param>
+		/// <remarks>Known bug: the popup list has no scrollbar.</remarks>
 		public UIDropDown AddDropdown(string name, int x, int y, string[] items,
 		string tooltip = "") {
 			//holy shit having to do all this manually
+			//like, why isn't some of this a default or a template
+			//(there are templates but not any that are useful here)
+			//I sure hope nobody ever has a non-default color scheme or font size.
 			UIDropDown dropdown = panel.AddUIComponent<UIDropDown>();
 			//panel.AttachUIComponent(dropdown.gameObject);
 			this.children.Add(dropdown);
@@ -138,6 +201,18 @@ namespace JoystickCamera {
 			return dropdown;
 		}
 
+		/// <summary>
+		/// Add a slider.
+		/// </summary>
+		/// <returns>The slider.</returns>
+		/// <param name="name">Name, for internal identification.</param>
+		/// <param name="x">X coord of slider in panel.</param>
+		/// <param name="y">Y coord of slider in panel.</param>
+		/// <param name="value">Initial value.</param>
+		/// <param name="min">Minimum value.</param>
+		/// <param name="max">Maximum value.</param>
+		/// <param name="step">Step sizes.</param>
+		/// <param name="tooltip">Tooltip text.</param>
 		public UICustomSlider AddSlider(string name, int x, int y, float value,
 		float min, float max, float step, string tooltip = "") {
 			UICustomSlider slider = panel.AddUIComponent<UICustomSlider>();
@@ -181,6 +256,15 @@ namespace JoystickCamera {
 			return slider;
 		}
 
+		/// <summary>
+		/// Add a checkbox.
+		/// </summary>
+		/// <returns>The checkbox.</returns>
+		/// <param name="name">Name, for internal identification.</param>
+		/// <param name="x">X coord of checkbox in panel.</param>
+		/// <param name="y">Y coord of ckechbox in panel.</param>
+		/// <param name="state">Initial state (true=checked, false=not).</param>
+		/// <param name="tooltip">Tooltip text.</param>
 		public UICustomCheckbox AddCheckbox(string name, int x, int y, bool state = false, string tooltip = "") {
 			UICustomCheckbox box = panel.AddUIComponent<UICustomCheckbox>();
 			this.children.Add(box);
@@ -194,6 +278,12 @@ namespace JoystickCamera {
 			return box;
 		}
 
+		/// <summary>
+		/// Remove a widget by name.
+		/// </summary>
+		/// <returns><c>true</c> if removed, <c>false</c> if not.</returns>
+		/// <param name="name">Widget name.</param>
+		/// <remarks>This currently isn't used and might not even work.</remarks>
 		public bool Remove(string name) {
 			UIComponent component = panel.Find(name);
 			if(component == null) {
@@ -204,6 +294,13 @@ namespace JoystickCamera {
 			return true;
 		}
 
+		/// <summary>
+		/// Remove a widget.
+		/// </summary>
+		/// <param name="component">Widget to remove.</param>
+		/// <param name="relayout">If set to <c>true</c>, all widgets below this one
+		/// will be shifted upward by the height of the removed item.</param>
+		/// <remarks>Also destroys the object.</remarks>
 		public void Remove(UIComponent component, bool relayout = true) {
 			this.children.Remove(component);
 

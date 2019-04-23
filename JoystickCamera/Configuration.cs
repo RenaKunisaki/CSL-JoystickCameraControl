@@ -6,6 +6,9 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace JoystickCamera {
+	/// <summary>
+	/// Object containing the actual data saved/loaded to the config file.
+	/// </summary>
 	[XmlRoot("Configuration")]
 	public class ConfigData {
 		public class ModifierDef {
@@ -27,6 +30,11 @@ namespace JoystickCamera {
 		[XmlArray("inputs")]
 		public List<InputDef> inputs;
 
+		/// <summary>
+		/// Parse the input list and return the JoystickInputDefs.
+		/// </summary>
+		/// <returns>The inputs.</returns>
+		/// <remarks>Ignores inputs with invalid settings.</remarks>
 		public List<JoystickInputDef> GetInputs() {
 			var result = new List<JoystickInputDef>(inputs.Count);
 			foreach(var input in inputs) {
@@ -70,6 +78,10 @@ namespace JoystickCamera {
 			return result;
 		}
 
+		/// <summary>
+		/// Replace the input list with the specified list.
+		/// </summary>
+		/// <param name="inputs">Inputs.</param>
 		public void SetInputs(List<JoystickInputDef> inputs) {
 			this.inputs = new List<InputDef>(inputs.Count);
 			foreach(var input in inputs) {
@@ -96,15 +108,26 @@ namespace JoystickCamera {
 		}
 	}
 
+	/// <summary>
+	/// Used to save and load the configuration.
+	/// </summary>
 	public class Configuration {
 		protected string path;
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="T:JoystickCamera.Configuration"/> class.
+		/// </summary>
+		/// <param name="FileName">Config file name to use.</param>
 		public Configuration(string FileName = "JoystickCameraConfig.xml") {
 			string FilePath = DataLocation.localApplicationData;
 			this.path = Path.Combine(FilePath, FileName);
 			JoystickCamera.Log($"Config path is {this.path}");
 		}
 
+		/// <summary>
+		/// Load the config from the file.
+		/// </summary>
+		/// <returns>The config.</returns>
 		public ConfigData Load() {
 			var serializer = new XmlSerializer(typeof(ConfigData));
 			using(var streamReader = new StreamReader(path)) {
@@ -112,6 +135,10 @@ namespace JoystickCamera {
 			}
 		}
 
+		/// <summary>
+		/// Save the config to the file.
+		/// </summary>
+		/// <param name="data">Config to save.</param>
 		public void Save(ConfigData data) {
 			var serializer = new XmlSerializer(typeof(ConfigData));
 			using(var streamWriter = new StreamWriter(path)) {

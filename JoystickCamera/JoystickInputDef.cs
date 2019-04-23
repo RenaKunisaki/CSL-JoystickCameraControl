@@ -7,6 +7,9 @@ namespace JoystickCamera {
 	/// An input definition for the joystick.
 	/// </summary>
 	public class JoystickInputDef {
+		/// <summary>
+		/// Available outputs an axis can map to.
+		/// </summary>
 		public enum Output {
 			CAMERA_MOVE_X,
 			CAMERA_MOVE_Y,
@@ -27,7 +30,11 @@ namespace JoystickCamera {
 			"Turn Left/Right",
 			"Turn Up/Down",
 		};
-		//These names are defined by the game (except None)
+		/// <summary>
+		/// Available axes.
+		/// </summary>
+		/// <remarks>These names are defined by the game (except None).
+		/// We can't use any others unfortunately.</remarks>
 		public enum Axis {
 			NONE,
 			HORIZONTAL,
@@ -50,8 +57,11 @@ namespace JoystickCamera {
 			"Mouse Y",
 			"Mouse ScrollWheel",
 		};
+		/// <summary>
+		/// Conditions for modifier keys.
+		/// </summary>
 		public enum ModifierCondition {
-			IGNORE,
+			IGNORE, //XXX necessary?
 			HELD,
 			NOT_HELD,
 			Length
@@ -59,6 +69,9 @@ namespace JoystickCamera {
 		public static readonly string[] modifierConditionName = {
 			"Don't Care", "Held", "Not Held",
 		};
+		/// <summary>
+		/// Buttons that can be used as modifiers.
+		/// </summary>
 		public enum ModifierButton {
 			SHIFT_LEFT, SHIFT_RIGHT, SHIFT_ANY,
 			CTRL_LEFT, CTRL_RIGHT, CTRL_ANY,
@@ -82,21 +95,31 @@ namespace JoystickCamera {
 				condition = c;
 			}
 		};
-		public Axis axis;
-		public float speed;
-		public float minSpeed = 1; //for settings UI
-		public float maxSpeed = 1000;
-		public float speedStep = 1;
-		public float sign = 1;
-		public float deadZone = 0;
+
+		public Axis axis; //the axis to use for input
+		public float speed; //how fast the camera moves
+		public float minSpeed = 1; //for settings UI, minimum value for speed slider
+		public float maxSpeed = 1000; //max value for speed slider
+		public float speedStep = 1; //step size for speed slider
+		public float sign = 1; //-1 to invert input, 1 to not invert
+		public float deadZone = 0; //ignore input less than this magnitude
 		public List<Modifier> modifiers = new List<Modifier>();
-		public Output output;
+		public Output output; //the output variable to control
 
 		public string Name => OutputName[(int)output];
 		public string AxisName => axisNames[(int)axis];
 
 		public JoystickInputDef() { }
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="T:JoystickCamera.JoystickInputDef"/> class.
+		/// </summary>
+		/// <param name="axis">Axis to use as input.</param>
+		/// <param name="output">Output variable to control.</param>
+		/// <param name="speed">How fast the camera will move.</param>
+		/// <param name="sign">Either -1 to invert the input, or 1 to not invert.</param>
+		/// <param name="deadZone">Ignore inputs less than this magnitude.</param>
+		/// <param name="modifiers">Modifier keys.</param>
 		public JoystickInputDef(Axis axis, Output output, float speed = 100,
 		float sign = 1, float deadZone = 0,
 		Modifier[] modifiers = null) {
@@ -112,6 +135,12 @@ namespace JoystickCamera {
 			}
 		}
 
+		/// <summary>
+		/// Check if the current modifier key states are satisfied for this input.
+		/// </summary>
+		/// <returns><c>true</c>, if we should process this input,
+		/// <c>false</c> if we should ignore it.</returns>
+		/// <param name="modifiers">Current modifier key states.</param>
 		protected bool CheckModifiers(Dictionary<ModifierButton, bool> modifiers) {
 			if(this.modifiers == null) return true;
 			foreach(var mod in this.modifiers) {
@@ -126,6 +155,12 @@ namespace JoystickCamera {
 			return true;
 		}
 
+		/// <summary>
+		/// Read the input value.
+		/// </summary>
+		/// <returns>The value.</returns>
+		/// <param name="modifiers">Current modifier key states.</param>
+		/// <remarks>If the modifier conditions aren't satisfied, returns 0.</remarks>
 		public float Read(Dictionary<ModifierButton, bool> modifiers) {
 			if(!CheckModifiers(modifiers)) return 0;
 			float val = Input.GetAxis(axisNames[(int)this.axis]);

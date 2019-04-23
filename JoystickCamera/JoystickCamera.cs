@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using ColossalFramework.UI;
+using System.IO;
 using ICities;
 using UnityEngine;
 using static JoystickCamera.JoystickInputDef;
-using System.IO;
 
 namespace JoystickCamera {
 	public class JoystickCamera: ThreadingExtensionBase, IUserMod {
@@ -38,6 +37,9 @@ namespace JoystickCamera {
 			}
 		}
 
+		/// <summary>
+		/// Saves the config.
+		/// </summary>
 		public void SaveConfig() {
 			Log("Saving config...");
 			ConfigData data = new ConfigData();
@@ -46,6 +48,9 @@ namespace JoystickCamera {
 			Log("Saved config.");
 		}
 
+		/// <summary>
+		/// Loads the config.
+		/// </summary>
 		public void LoadConfig() {
 			Log("Loading config...");
 			var data = (new Configuration()).Load();
@@ -53,20 +58,35 @@ namespace JoystickCamera {
 			Log("Loaded config.");
 		}
 
+		/// <summary>
+		/// Get the input list.
+		/// </summary>
+		/// <returns>The inputs.</returns>
 		public List<JoystickInputDef> GetInputs() {
 			return inputs;
 		}
 
+		/// <summary>
+		/// Add a new input with default settings.
+		/// </summary>
+		/// <returns>The input.</returns>
 		public JoystickInputDef AddInput() {
 			JoystickInputDef input = new JoystickInputDef();
 			inputs.Add(input);
 			return input;
 		}
 
+		/// <summary>
+		/// Remove the specified input.
+		/// </summary>
+		/// <param name="input">Input.</param>
 		public void RemoveInput(JoystickInputDef input) {
 			inputs.Remove(input);
 		}
 
+		/// <summary>
+		/// Adds the default inputs, when no config file is available.
+		/// </summary>
 		protected void AddDefaultInputs() {
 			inputs.Add(new JoystickInputDef(
 				axis: JoystickInputDef.Axis.HORIZONTAL,
@@ -137,10 +157,8 @@ namespace JoystickCamera {
 		/// </summary>
 		/// <param name="helper">UI Helper.</param>
 		public void OnSettingsUI(UIHelperBase helper) {
-			if(this.settingsPanel == null) {
-				this.settingsPanel = new SettingsPanel(this, helper);
-				this.settingsPanel.Run();
-			}
+			this.settingsPanel = new SettingsPanel(this, helper);
+			this.settingsPanel.Run();
 		}
 
 		#endregion Settings UI
@@ -170,6 +188,10 @@ namespace JoystickCamera {
 			base.OnReleased();
 		}
 
+		/// <summary>
+		/// Get the current modifier keys' states.
+		/// </summary>
+		/// <returns>The modifiers.</returns>
 		protected Dictionary<ModifierButton, bool> GetModifiers() {
 			var modifiers = new Dictionary<ModifierButton, bool> {
 				{ ModifierButton.SHIFT_LEFT, Input.GetKey(KeyCode.LeftShift) },
@@ -192,7 +214,7 @@ namespace JoystickCamera {
 		}
 
 		/// <summary>
-		/// Called once per rendered frame.
+		/// Called once per rendered frame during gameplay.
 		/// Thread: Main
 		/// </summary>
 		/// <param name="realTimeDelta">Seconds since previous frame.</param>
@@ -202,15 +224,6 @@ namespace JoystickCamera {
 			GameObject gameObject = GameObject.FindGameObjectWithTag("MainCamera");
 			if(gameObject == null) return;
 
-			//XXX add modifiers when holding shift, joy button, etc.
-			//maybe even buttons to jump to camera positions?
-			//settings per joystick?
-			//could also bind buttons to game actions, but Steam already
-			//lets you do that by binding them to keys...
-			//maybe useful if you don't want a key
-			//also, have world-relative movement be a separate axis,
-			//so you can use both.
-
 			float t = realTimeDelta * 60; //should be ~1/60 of a second
 			Vector3 translateRelative = new Vector3(0, 0, 0); //screen relative movement
 			Vector3 translateWorld = new Vector3(0, 0, 0); //compass movement
@@ -218,6 +231,7 @@ namespace JoystickCamera {
 			float zoom = 0;
 			var modifiers = GetModifiers();
 
+			//Read each input and assign the output to appropriate variable.
 			foreach(JoystickInputDef input in this.inputs) {
 				float v = input.Read(modifiers) * t;
 				switch(input.output) {
@@ -245,23 +259,29 @@ namespace JoystickCamera {
 					case JoystickInputDef.Output.CAMERA_TURN_Y:
 						rotate.y += v;
 						break;
+					default:
+						Log($"[BUG] Missing case for output {input.output}");
+						break;
 				}
 			}
 
+			//Get camera objects and current position
 			CameraController cameraController = gameObject.GetComponent<CameraController>();
 			Vector3 currentPos = cameraController.m_currentPosition;
 			Vector3 targetPos = currentPos;
-			translateRelative = cameraController.transform.localToWorldMatrix.MultiplyVector(translateRelative);
 
+			//Transform relative to camera angle
+			translateRelative = cameraController.transform.localToWorldMatrix.MultiplyVector(translateRelative);
 			targetPos.x += translateRelative.x + translateWorld.x;
 			targetPos.y += translateRelative.y + translateWorld.y;
-			targetPos.z += translateRelative.z + translateWorld.z;
+			targetPos.z += translateRelative.z + translateWorld.z; //ignored?
 
 			cameraController.m_targetPosition = targetPos;
 			cameraController.m_targetAngle.x += rotate.x;
 			cameraController.m_targetAngle.y += rotate.y;
 			cameraController.m_targetSize += zoom;
-			//cameraController.m_targetHeight += translateWorld.z;
+			//this seems to also be ignored...
+			cameraController.m_targetHeight += translateWorld.z;
 		}
 
 		#endregion ThreadingExtensionBase
