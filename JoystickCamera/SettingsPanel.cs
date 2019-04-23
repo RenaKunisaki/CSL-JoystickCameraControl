@@ -33,32 +33,27 @@ namespace JoystickCamera {
 			});
 
 			//Add displays of current input values
-			//Doesn't work, because OnUpdate isn't called while the
-			//options menu is open.
-			/* int y = 100;
+			UIHelperBase groupV = helper.AddGroup("Current Input Values");
+			var groupRoot = ((groupV as UIHelper).self as UIComponent);
+			int y = 0;
 			foreach(string axis in JoystickInputDef.axisNames) {
-				var panel = this.AddPanel(root, "display_" + axis,
-				0, y, 400, 30);
+				if(axis == "None") continue;
+
+				var panel = this.AddPanel(groupRoot,
+					"display_" + axis, 0, y, 400, 30);
 				panel.AddLabel(axis, 0, 0);
-				panel.AddSlider(axis + "_curval", 100, 0, 0, 0, 1, 0.1f);
-				y += 30;
-			} */
+				var slider = panel.AddSlider(axis + "_curval",
+					x: 150, y: 0, value: 0, min: -100, max: 100, step: 1);
+				y += 25;
+
+				slider.isInteractive = false;
+				slider.OnUpdate += () => {
+					slider.value = Input.GetAxis(axis) * 100;
+				};
+			}
 
 			foreach(JoystickInputDef input in parent.GetInputs()) {
 				AddInput(input);
-			}
-		}
-
-		public void Update() {
-			foreach(string axis in JoystickInputDef.axisNames) {
-				var slider = this.root.Find<UISlider>(axis + "_curval");
-				if(slider != null) {
-					float val = Input.GetAxis(axis);
-					slider.value = val;
-				}
-				else {
-					JoystickCamera.Log($"Can't find slider {axis}_curval");
-				}
 			}
 		}
 
@@ -135,55 +130,63 @@ namespace JoystickCamera {
 			UIButton btnAddMod = panel.AddButton("Add Modifier",
 				90, 85, 110, 20, "Add a modifier");
 			btnAddMod.eventClicked += (component, eventParam) => {
-				input.modifiers.Add(new JoystickInputDef.Modifier(
+				var mod = new JoystickInputDef.Modifier(
 					JoystickInputDef.ModifierButton.SHIFT_ANY,
-					JoystickInputDef.ModifierCondition.HELD));
-				//XXX update UI
+					JoystickInputDef.ModifierCondition.HELD);
+				input.modifiers.Add(mod);
+				panel.height += 25;
+				AddModifierWidgets(input, mod, panel, (int)panel.height - 25);
 			};
 
 			//Add modifiers
 			int y = 105;
 			foreach(var mod in input.modifiers) {
-				string name = JoystickInputDef.modifierButtonName[(int)mod.button];
-				var drop = panel.AddDropdown(name, 0, y,
-					JoystickInputDef.modifierButtonName, "Which button to use");
-				drop.eventSelectedIndexChanged += (component, value) => {
-					mod.button = (JoystickInputDef.ModifierButton)value;
-				};
-
-				panel.AddLabel("Held", 230, y + 2);
-				var chkHeld = panel.AddCheckbox(name + "_held", 210, y + 2,
-					mod.condition == JoystickInputDef.ModifierCondition.HELD,
-					"Button must be held");
-
-				panel.AddLabel("Not Held", 290, y + 2);
-				var chkNotHeld = panel.AddCheckbox(name + "_notheld", 270, y + 2,
-					mod.condition == JoystickInputDef.ModifierCondition.NOT_HELD,
-					"Button must not be held");
-
-				chkHeld.eventClicked += (component, eventParam) => {
-					mod.condition = chkHeld.isChecked ?
-						JoystickInputDef.ModifierCondition.HELD
-						: JoystickInputDef.ModifierCondition.NOT_HELD;
-					chkNotHeld.isChecked = !chkHeld.isChecked;
-				};
-				chkNotHeld.eventClicked += (component, eventParam) => {
-					mod.condition = chkNotHeld.isChecked ?
-						JoystickInputDef.ModifierCondition.NOT_HELD
-						: JoystickInputDef.ModifierCondition.HELD;
-					chkHeld.isChecked = !chkNotHeld.isChecked;
-				};
-
-				UIButton btnDeleteMod = panel.AddButton("Delete", 370, y, 70, 20,
-					"Delete this modifier");
-				btnDeleteMod.eventClicked += (component, eventParam) => {
-					input.modifiers.Remove(mod);
-					//XXX update UI
-				};
-
-				y += 15;
+				AddModifierWidgets(input, mod, panel, y);
+				y += 25;
 			}
 			panel.height = y;
+		}
+
+		protected void AddModifierWidgets(JoystickInputDef input,
+		JoystickInputDef.Modifier mod, UIPanelWrapper panel, int y) {
+			string name = $"modifier{y}";
+			var SubPanel = panel.AddPanel(name, 0, y, 600, 25);
+
+			var drop = SubPanel.AddDropdown(name, 0, 0,
+				JoystickInputDef.modifierButtonName, "Which button to use");
+			drop.eventSelectedIndexChanged += (component, value) => {
+				mod.button = (JoystickInputDef.ModifierButton)value;
+			};
+
+			var lblHeld = SubPanel.AddLabel("Held", 230, 2);
+			var chkHeld = SubPanel.AddCheckbox(name + "_held", 210, 2,
+				mod.condition == JoystickInputDef.ModifierCondition.HELD,
+				"Button must be held");
+
+			var lblNotHeld = SubPanel.AddLabel("Not Held", 290, 2);
+			var chkNotHeld = SubPanel.AddCheckbox(name + "_notheld", 270, 2,
+				mod.condition == JoystickInputDef.ModifierCondition.NOT_HELD,
+				"Button must not be held");
+
+			chkHeld.eventClicked += (component, eventParam) => {
+				mod.condition = chkHeld.isChecked ?
+					JoystickInputDef.ModifierCondition.HELD
+					: JoystickInputDef.ModifierCondition.NOT_HELD;
+				chkNotHeld.isChecked = !chkHeld.isChecked;
+			};
+			chkNotHeld.eventClicked += (component, eventParam) => {
+				mod.condition = chkNotHeld.isChecked ?
+					JoystickInputDef.ModifierCondition.NOT_HELD
+					: JoystickInputDef.ModifierCondition.HELD;
+				chkHeld.isChecked = !chkNotHeld.isChecked;
+			};
+
+			UIButton btnDeleteMod = SubPanel.AddButton("Delete", 370, 0, 70, 20,
+				"Delete this modifier");
+			btnDeleteMod.eventClicked += (component, eventParam) => {
+				input.modifiers.Remove(mod);
+				panel.Remove(SubPanel.Panel);
+			};
 		}
 	}
 }

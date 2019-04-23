@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using ColossalFramework.UI;
 using UnityEngine;
 
@@ -19,11 +20,22 @@ namespace JoystickCamera {
 		}
 	}
 
+	public class UICustomSlider: UISlider {
+		public delegate void OnUpdateDelegate();
+		public OnUpdateDelegate OnUpdate;
+		public new virtual void Update() {
+			base.Update();
+			if(OnUpdate != null) OnUpdate.Invoke();
+		}
+	}
+
 	public class UIPanelWrapper {
 		protected UIPanel panel;
+		protected List<UIComponent> children;
 
 		public UIPanelWrapper(UIPanel panel, string name, int x, int y, int width, int height) {
 			this.panel = panel;
+			this.children = new List<UIComponent>();
 			panel.name = name;
 			panel.autoLayoutDirection = LayoutDirection.Horizontal;
 			this.relativePosition = new Vector3(x, y, 0);
@@ -49,8 +61,16 @@ namespace JoystickCamera {
 			set => this.panel.height = value;
 		}
 
+		public UIPanelWrapper AddPanel(string name, int x, int y, int width, int height) {
+			UIPanel subPanel = panel.AddUIComponent<UIPanel>();
+			var wrapper = new UIPanelWrapper(subPanel, name, x, y, width, height);
+			this.children.Add(subPanel);
+			return wrapper;
+		}
+
 		public UILabel AddLabel(string text, int x, int y) {
 			UILabel label = panel.AddUIComponent<UILabel>();
+			this.children.Add(label);
 			label.relativePosition = new Vector3(x, y, 0);
 			label.text = text;
 			return label;
@@ -59,6 +79,7 @@ namespace JoystickCamera {
 		public UIButton AddButton(string text, int x, int y, int width,
 		int height = 20, string tooltip = "") {
 			UIButton button = panel.AddUIComponent<UIButton>();
+			this.children.Add(button);
 			button.name = text;
 			button.text = text;
 			button.tooltip = tooltip;
@@ -78,6 +99,7 @@ namespace JoystickCamera {
 			//holy shit having to do all this manually
 			UIDropDown dropdown = panel.AddUIComponent<UIDropDown>();
 			//panel.AttachUIComponent(dropdown.gameObject);
+			this.children.Add(dropdown);
 			dropdown.items = items;
 			dropdown.selectedIndex = 0;
 			dropdown.isEnabled = true;
@@ -116,9 +138,10 @@ namespace JoystickCamera {
 			return dropdown;
 		}
 
-		public UISlider AddSlider(string name, int x, int y, float value,
+		public UICustomSlider AddSlider(string name, int x, int y, float value,
 		float min, float max, float step, string tooltip = "") {
-			UISlider slider = panel.AddUIComponent<UISlider>();
+			UICustomSlider slider = panel.AddUIComponent<UICustomSlider>();
+			this.children.Add(slider);
 			slider.name = name;
 			slider.minValue = min;
 			slider.maxValue = max;
@@ -129,6 +152,7 @@ namespace JoystickCamera {
 			slider.tooltip = tooltip;
 
 			UISprite thumbSprite = slider.AddUIComponent<UISprite>();
+			this.children.Add(thumbSprite);
 			thumbSprite.name = name + "_thumb";
 			thumbSprite.spriteName = "OptionsScrollbarThumb";
 			thumbSprite.Show();
@@ -144,6 +168,7 @@ namespace JoystickCamera {
 			slider.isInteractive = true;
 
 			UILabel valueLabel = panel.AddUIComponent<UILabel>();
+			this.children.Add(valueLabel);
 			valueLabel.name = name + "_ValueLabel";
 			valueLabel.text = slider.value.ToString("0");
 			valueLabel.relativePosition = new Vector3(x + 175, y);
@@ -158,6 +183,7 @@ namespace JoystickCamera {
 
 		public UICustomCheckbox AddCheckbox(string name, int x, int y, bool state = false, string tooltip = "") {
 			UICustomCheckbox box = panel.AddUIComponent<UICustomCheckbox>();
+			this.children.Add(box);
 			box.relativePosition = new Vector3(x, y, 0);
 			box.size = new Vector2(16, 16);
 			box.Show();
@@ -166,6 +192,37 @@ namespace JoystickCamera {
 			box.tooltip = tooltip;
 			box.color = new Color32(185, 221, 254, 255);
 			return box;
+		}
+
+		public bool Remove(string name) {
+			UIComponent component = panel.Find(name);
+			if(component == null) {
+				JoystickCamera.Log($"Can't find UI component '{name}' to remove");
+				return false;
+			}
+			Remove(component);
+			return true;
+		}
+
+		public void Remove(UIComponent component, bool relayout = true) {
+			this.children.Remove(component);
+
+			if(relayout) {
+				//Move children below this one up
+				//Note the origin is actually lower left corner, so
+				//we're really moving children above this one down...
+				foreach(UIComponent child in this.children) {
+					if(child.position.y < component.position.y) {
+						child.position = new Vector3(
+							child.position.x,
+							child.position.y + component.height,
+							child.position.z);
+					}
+				}
+				panel.height -= component.height;
+			}
+			panel.RemoveUIComponent(component);
+			UnityEngine.Object.Destroy(component);
 		}
 	}
 }

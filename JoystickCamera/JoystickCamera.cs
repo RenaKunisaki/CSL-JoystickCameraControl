@@ -175,10 +175,6 @@ namespace JoystickCamera {
 		/// <param name="simulationTimeDelta">Smoothly interpolated to be used
 		/// from main thread. On normal speed it is roughly same as realTimeDelta.</param>
 		public override void OnUpdate(float realTimeDelta, float simulationTimeDelta) {
-			if(this.settingsPanel != null) {
-				this.settingsPanel.Update();
-			}
-
 			GameObject gameObject = GameObject.FindGameObjectWithTag("MainCamera");
 			if(gameObject == null) return;
 
