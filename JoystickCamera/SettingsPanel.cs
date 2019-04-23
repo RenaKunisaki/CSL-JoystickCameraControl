@@ -152,7 +152,7 @@ namespace JoystickCamera {
 			//Add offset slider.
 			panel.AddLabel("Offset:", 380, 60);
 			panel.AddSlider(name: "offset", x: 450, y: 60, value: input.offset * 100,
-				min: 0, max: 100, step: 1, tooltip: "Offset added to input.")
+				min: -100, max: 100, step: 1, tooltip: "Offset added to input.")
 				.eventValueChanged += (component, value) => {
 					input.offset = value / 100;
 					parent.SaveConfig();
