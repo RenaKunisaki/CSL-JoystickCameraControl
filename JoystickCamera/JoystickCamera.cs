@@ -11,6 +11,7 @@ namespace JoystickCamera {
 		public string Description => "Use a joystick to control the camera.";
 		public readonly float PI_OVER_180 = Mathf.PI / 180f;
 		protected List<JoystickInputDef> inputs;
+		protected SettingsPanel settingsPanel;
 
 		public JoystickCamera() {
 			Log("Instantiated");
@@ -112,7 +113,10 @@ namespace JoystickCamera {
 		/// </summary>
 		/// <param name="helper">UI Helper.</param>
 		public void OnSettingsUI(UIHelperBase helper) {
-			new SettingsPanel(this, helper).Run();
+			if(this.settingsPanel == null) {
+				this.settingsPanel = new SettingsPanel(this, helper);
+				this.settingsPanel.Run();
+			}
 		}
 
 		#endregion Settings UI
@@ -171,6 +175,10 @@ namespace JoystickCamera {
 		/// <param name="simulationTimeDelta">Smoothly interpolated to be used
 		/// from main thread. On normal speed it is roughly same as realTimeDelta.</param>
 		public override void OnUpdate(float realTimeDelta, float simulationTimeDelta) {
+			if(this.settingsPanel != null) {
+				this.settingsPanel.Update();
+			}
+
 			GameObject gameObject = GameObject.FindGameObjectWithTag("MainCamera");
 			if(gameObject == null) return;
 

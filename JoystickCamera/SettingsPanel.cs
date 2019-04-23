@@ -7,6 +7,7 @@ namespace JoystickCamera {
 	public class SettingsPanel {
 		protected JoystickCamera parent;
 		protected UIHelperBase helper;
+		protected UIComponent root;
 
 		public SettingsPanel(JoystickCamera parent, UIHelperBase helper) {
 			this.parent = parent;
@@ -14,8 +15,9 @@ namespace JoystickCamera {
 		}
 
 		public void Run() {
+			this.root = ((helper as UIHelper).self as UIComponent);
+
 			UIHelperBase groupG = helper.AddGroup("Note:");
-			//UIComponent root = ((helper as UIHelper).self as UIComponent);
 			((groupG as UIHelper).self as UIComponent).AddUIComponent<UILabel>()
 				.text =
 				"· Using mouse inputs may make the game very hard\n" +
@@ -30,8 +32,33 @@ namespace JoystickCamera {
 				AddInput(parent.AddInput());
 			});
 
+			//Add displays of current input values
+			//Doesn't work, because OnUpdate isn't called while the
+			//options menu is open.
+			/* int y = 100;
+			foreach(string axis in JoystickInputDef.axisNames) {
+				var panel = this.AddPanel(root, "display_" + axis,
+				0, y, 400, 30);
+				panel.AddLabel(axis, 0, 0);
+				panel.AddSlider(axis + "_curval", 100, 0, 0, 0, 1, 0.1f);
+				y += 30;
+			} */
+
 			foreach(JoystickInputDef input in parent.GetInputs()) {
 				AddInput(input);
+			}
+		}
+
+		public void Update() {
+			foreach(string axis in JoystickInputDef.axisNames) {
+				var slider = this.root.Find<UISlider>(axis + "_curval");
+				if(slider != null) {
+					float val = Input.GetAxis(axis);
+					slider.value = val;
+				}
+				else {
+					JoystickCamera.Log($"Can't find slider {axis}_curval");
+				}
 			}
 		}
 
@@ -113,7 +140,6 @@ namespace JoystickCamera {
 					JoystickInputDef.ModifierCondition.HELD));
 				//XXX update UI
 			};
-
 
 			//Add modifiers
 			int y = 105;
