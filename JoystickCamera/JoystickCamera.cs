@@ -31,7 +31,7 @@ namespace JoystickCamera {
 				AddDefaultInputs();
 				SaveConfig();
 			}
-			catch(System.IO.IOException ex) {
+			catch(Exception ex) {
 				Log($"Error loading config file: {ex}");
 				AddDefaultInputs();
 			}
