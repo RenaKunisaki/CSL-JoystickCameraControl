@@ -88,7 +88,7 @@ namespace JoystickCamera {
 		#region logging
 
 		/// <summary>
-		/// Writes a message to the debug logs. "NoOffScreenScroll" tag
+		/// Writes a message to the debug logs. "JoystickCamera" tag
 		/// and timestamp are automatically prepended.
 		/// </summary>
 		/// <param name="message">Message.</param>
