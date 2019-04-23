@@ -43,18 +43,18 @@ namespace JoystickCamera {
 			inputs.Add(new JoystickInputDef(
 				axis: JoystickInputDef.Axis.HORIZONTAL,
 				output: JoystickInputDef.Output.CAMERA_MOVE_X,
-				speed: 100,
-				modifiers: new Modifier[] {
-					new Modifier(ModifierButton.SHIFT_ANY, ModifierCondition.NOT_HELD),
-				}
+				speed: 100
+			/* modifiers: new Modifier[] {
+				new Modifier(ModifierButton.SHIFT_ANY, ModifierCondition.NOT_HELD),
+			} */
 			));
 			inputs.Add(new JoystickInputDef(
 				axis: JoystickInputDef.Axis.VERTICAL,
 				output: JoystickInputDef.Output.CAMERA_MOVE_Z,
-				speed: 100,
-				modifiers: new Modifier[] {
-					new Modifier(ModifierButton.SHIFT_ANY, ModifierCondition.NOT_HELD),
-				}
+				speed: 100
+			/* modifiers: new Modifier[] {
+				new Modifier(ModifierButton.SHIFT_ANY, ModifierCondition.NOT_HELD),
+			} */
 			));
 			inputs.Add(new JoystickInputDef(
 				axis: JoystickInputDef.Axis.ROTATION_HORIZONTAL_CAMERA,
@@ -66,7 +66,7 @@ namespace JoystickCamera {
 				output: JoystickInputDef.Output.CAMERA_ZOOM,
 				speed: 5
 			));
-			inputs.Add(new JoystickInputDef(
+			/* inputs.Add(new JoystickInputDef(
 				axis: JoystickInputDef.Axis.HORIZONTAL,
 				output: JoystickInputDef.Output.CAMERA_MOVE_EW,
 				speed: 100,
@@ -81,7 +81,7 @@ namespace JoystickCamera {
 				modifiers: new Modifier[] {
 					new Modifier(ModifierButton.SHIFT_ANY, ModifierCondition.HELD),
 				}
-			));
+			)); */
 		}
 
 		#region logging

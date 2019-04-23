@@ -50,7 +50,7 @@ namespace JoystickCamera {
 			panel.AddLabel("Input Axis:", 0, 5);
 			UIDropDown ddInput = panel.AddDropdown(
 				name: "input", x: 90, y: 0, items: JoystickInputDef.axisNames);
-			ddInput.selectedIndex = 0;
+			ddInput.selectedIndex = (int)input.axis;
 			ddInput.eventSelectedIndexChanged += (component, value) => {
 				input.axis = (JoystickInputDef.Axis)value;
 			};
@@ -59,6 +59,7 @@ namespace JoystickCamera {
 			panel.AddLabel("Action:", 300, 5);
 			UIDropDown ddOutput = panel.AddDropdown(
 				name: "output", x: 370, y: 0, items: JoystickInputDef.OutputName);
+			ddOutput.selectedIndex = (int)input.output;
 			ddOutput.eventSelectedIndexChanged += (component, value) => {
 				input.output = (JoystickInputDef.Output)value;
 			};

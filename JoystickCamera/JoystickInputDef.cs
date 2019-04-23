@@ -86,7 +86,7 @@ namespace JoystickCamera {
 		public float speed;
 		public float minSpeed = 1; //for settings UI
 		public float maxSpeed = 1000;
-		public float speedStep = 10;
+		public float speedStep = 1;
 		public float sign = 1;
 		public float deadZone = 0;
 		public List<Modifier> modifiers = new List<Modifier>();
