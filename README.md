@@ -9,6 +9,7 @@ Enable the mod and go to the Options menu. It displays a list of default input s
 * Movement Speed: Selects how fast the movement will be.
 * Invert: Moves in the opposite direction of the input.
 * Dead Zone: Inputs less than this will be ignored. Useful for old joysticks that jitter when not actually being moved.
+* Offset: Added to the input (before dead zone). Useful for joysticks that have a slider whose neutral point isn't the centre.
 
 Also, the current inputs are shown, so you can see which is which.
 
@@ -19,7 +20,7 @@ For example, you could set the Horizontal and Vertical axes to Move Left/Right a
 
 # Known Issues
 * Only five input axes (excluding the mouse) can be used (see Issue #1) because Unity is silly.
-* Moving the camera up/down is usually ignored by the game.
+* Moving the camera up/down is usually ignored by the game. As a result, forward/backward movement can be slow (since it can translate into some up/down movement).
 * To build on Linux/Mac, you must set `STEAMPATH` environment variable, eg `/home/steam/.local/share/Steam`.
 
 # Possible Future Features
@@ -32,7 +33,6 @@ For example, you could set the Horizontal and Vertical axes to Move Left/Right a
   * Accept inputs over local TCP/UDP port.
 * Force feedback in whatever appropriate situation.
 * Option to disable input smoothing.
-* Input offsets.
 * Map camera position/angle directly to an axis (ie the camera position is exactly the joystick position).
 
 # Thanks to
