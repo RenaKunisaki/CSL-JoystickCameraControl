@@ -149,8 +149,17 @@ namespace JoystickCamera {
 					parent.SaveConfig();
 				};
 
+			//Add offset slider.
+			panel.AddLabel("Offset:", 380, 60);
+			panel.AddSlider(name: "offset", x: 450, y: 60, value: input.offset * 100,
+				min: 0, max: 100, step: 1, tooltip: "Offset added to input.")
+				.eventValueChanged += (component, value) => {
+					input.offset = value / 100;
+					parent.SaveConfig();
+				};
+
 			//Add delete button.
-			UIButton btnDelete = panel.AddButton("Delete Input", 380, 60, 110, 20,
+			UIButton btnDelete = panel.AddButton("Delete Input", 465, 30, 110, 20,
 				"Delete this input.");
 			btnDelete.eventClicked += (component, eventParam) => {
 				parent.RemoveInput(input);

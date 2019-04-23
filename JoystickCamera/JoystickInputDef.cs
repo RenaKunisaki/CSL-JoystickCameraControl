@@ -103,6 +103,7 @@ namespace JoystickCamera {
 		public float speedStep = 1; //step size for speed slider
 		public float sign = 1; //-1 to invert input, 1 to not invert
 		public float deadZone = 0; //ignore input less than this magnitude
+		public float offset = 0; //add offset to input
 		public List<Modifier> modifiers = new List<Modifier>();
 		public Output output; //the output variable to control
 
@@ -121,13 +122,14 @@ namespace JoystickCamera {
 		/// <param name="deadZone">Ignore inputs less than this magnitude.</param>
 		/// <param name="modifiers">Modifier keys.</param>
 		public JoystickInputDef(Axis axis, Output output, float speed = 100,
-		float sign = 1, float deadZone = 0,
+		float sign = 1, float deadZone = 0, float offset = 0,
 		Modifier[] modifiers = null) {
 			this.axis = axis;
 			this.output = output;
 			this.speed = speed;
 			this.sign = sign;
 			this.deadZone = deadZone;
+			this.offset = offset;
 			if(modifiers != null) {
 				foreach(var mod in modifiers) {
 					this.modifiers.Add(mod);
@@ -163,7 +165,7 @@ namespace JoystickCamera {
 		/// <remarks>If the modifier conditions aren't satisfied, returns 0.</remarks>
 		public float Read(Dictionary<ModifierButton, bool> modifiers) {
 			if(!CheckModifiers(modifiers)) return 0;
-			float val = Input.GetAxis(axisNames[(int)this.axis]);
+			float val = Input.GetAxis(axisNames[(int)this.axis]) + offset;
 			if(val > -deadZone && val < deadZone) val = 0;
 			return val * speed * sign;
 		}
