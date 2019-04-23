@@ -274,14 +274,17 @@ namespace JoystickCamera {
 			translateRelative = cameraController.transform.localToWorldMatrix.MultiplyVector(translateRelative);
 			targetPos.x += translateRelative.x + translateWorld.x;
 			targetPos.y += translateRelative.y + translateWorld.y;
-			targetPos.z += translateRelative.z + translateWorld.z; //ignored?
+			targetPos.z += translateRelative.z + translateWorld.z;
 
 			cameraController.m_targetPosition = targetPos;
 			cameraController.m_targetAngle.x += rotate.x;
 			cameraController.m_targetAngle.y += rotate.y;
 			cameraController.m_targetSize += zoom;
 			//this seems to also be ignored...
-			cameraController.m_targetHeight += translateWorld.z;
+			//is the camera Y position not where the camera actually is in world space?
+			//should add a debug display of its position...
+			cameraController.m_targetHeight = targetPos.y;
+			//cameraController.m_currentHeight += translateRelative.z;
 		}
 
 		#endregion ThreadingExtensionBase
