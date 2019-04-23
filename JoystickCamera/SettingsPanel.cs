@@ -27,8 +27,6 @@ namespace JoystickCamera {
 			UIHelperBase groupG = helper.AddGroup("Note:");
 			((groupG as UIHelper).self as UIComponent).AddUIComponent<UILabel>()
 				.text =
-				"· Using mouse inputs may make the game very hard\n" +
-				"   to control, or might not do anything!\n" +
 				"· Up/Down movement is usually ignored by the game,\n" +
 				"   or converted into forward/backward movement.\n" +
 				"· Up/Down rotation can confuse the camera about which\n" +
