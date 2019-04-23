@@ -14,10 +14,10 @@ namespace JoystickCamera {
 		}
 
 		public void Run() {
-			UIHelperBase groupG = helper.AddGroup("General");
+			UIHelperBase groupG = helper.AddGroup("Note:");
 			//UIComponent root = ((helper as UIHelper).self as UIComponent);
 			((groupG as UIHelper).self as UIComponent).AddUIComponent<UILabel>()
-				.text = "NOTE:\n" +
+				.text =
 				"· Using mouse inputs may make the game very hard\n" +
 				"   to control, or might not do anything!\n" +
 				"· Up/Down movement is usually ignored by the game,\n" +
@@ -106,7 +106,7 @@ namespace JoystickCamera {
 			//Add modifiers header
 			panel.AddLabel("Modifiers:", 0, 85);
 			UIButton btnAddMod = panel.AddButton("Add Modifier",
-				90, 85, 100, 20, "Add a modifier");
+				90, 85, 110, 20, "Add a modifier");
 			btnAddMod.eventClicked += (component, eventParam) => {
 				input.modifiers.Add(new JoystickInputDef.Modifier(
 					JoystickInputDef.ModifierButton.SHIFT_ANY,
