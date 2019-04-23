@@ -1,0 +1,122 @@
+﻿using System;
+using ColossalFramework.IO;
+using System.IO;
+using System.Xml.Serialization;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace JoystickCamera {
+	[XmlRoot("Configuration")]
+	public class ConfigData {
+		public class ModifierDef {
+			public string button;
+			public string condition;
+		}
+
+		public class InputDef {
+			public string output;
+			public string axis;
+			public float speed;
+			public float sign;
+			public float deadZone;
+
+			[XmlArray("modifiers")]
+			public List<ModifierDef> modifiers;
+		}
+
+		[XmlArray("inputs")]
+		public List<InputDef> inputs;
+
+		public List<JoystickInputDef> GetInputs() {
+			var result = new List<JoystickInputDef>(inputs.Count);
+			foreach(var input in inputs) {
+				int outputIdx = Array.IndexOf(JoystickInputDef.OutputName, input.output);
+				if(outputIdx < 0) {
+					Log($"Invalid output '{input.output}'");
+					continue;
+				}
+
+				int axisIdx = Array.IndexOf(JoystickInputDef.axisNames, input.axis);
+				if(axisIdx < 0) {
+					Log($"Invalid axis '{input.axis}'");
+					continue;
+				}
+
+				var inputDef = new JoystickInputDef(
+					(JoystickInputDef.Axis)axisIdx,
+					(JoystickInputDef.Output)outputIdx,
+					input.speed, input.sign, input.deadZone);
+
+				foreach(var mod in input.modifiers) {
+					int btnIdx = Array.IndexOf(JoystickInputDef.modifierButtonName, mod.button);
+					if(btnIdx < 0) {
+						Log($"Invalid modifier button '{mod.button}'");
+						continue;
+					}
+
+					int condIdx = Array.IndexOf(JoystickInputDef.modifierConditionName, mod.condition);
+					if(condIdx < 0) {
+						Log($"Invalid modifier condition '{mod.condition}'");
+						continue;
+					}
+
+					inputDef.modifiers.Add(new JoystickInputDef.Modifier(
+						(JoystickInputDef.ModifierButton)btnIdx,
+						(JoystickInputDef.ModifierCondition)condIdx));
+				}
+
+				result.Add(inputDef);
+			}
+			return result;
+		}
+
+		public void SetInputs(List<JoystickInputDef> inputs) {
+			this.inputs = new List<InputDef>(inputs.Count);
+			foreach(var input in inputs) {
+				var item = new InputDef {
+					output = input.Name,
+					axis = input.AxisName,
+					speed = input.speed,
+					sign = input.sign,
+					deadZone = input.deadZone,
+				};
+				item.modifiers = new List<ModifierDef>(input.modifiers.Count);
+				foreach(var mod in input.modifiers) {
+					item.modifiers.Add(new ModifierDef {
+						button = JoystickInputDef.modifierButtonName[(int)mod.button],
+						condition = JoystickInputDef.modifierConditionName[(int)mod.condition],
+					});
+				}
+				this.inputs.Add(item);
+			}
+		}
+
+		protected static void Log(string message) {
+			JoystickCamera.Log(message);
+		}
+	}
+
+	public class Configuration {
+		protected string path;
+
+		public Configuration(string FileName = "JoystickCameraConfig.xml") {
+			string FilePath = DataLocation.localApplicationData;
+			this.path = Path.Combine(FilePath, FileName);
+			JoystickCamera.Log($"Config path is {this.path}");
+		}
+
+		public ConfigData Load() {
+			var serializer = new XmlSerializer(typeof(ConfigData));
+			using(var streamReader = new StreamReader(path)) {
+				return (ConfigData)serializer.Deserialize(streamReader);
+			}
+		}
+
+		public void Save(ConfigData data) {
+			var serializer = new XmlSerializer(typeof(ConfigData));
+			using(var streamWriter = new StreamWriter(path)) {
+				serializer.Serialize(streamWriter, data);
+			}
+		}
+	}
+}

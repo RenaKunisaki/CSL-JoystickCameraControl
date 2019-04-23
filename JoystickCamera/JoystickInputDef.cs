@@ -93,6 +93,7 @@ namespace JoystickCamera {
 		public Output output;
 
 		public string Name => OutputName[(int)output];
+		public string AxisName => axisNames[(int)axis];
 
 		public JoystickInputDef() { }
 

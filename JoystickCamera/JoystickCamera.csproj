@@ -43,6 +43,8 @@
     <Reference Include="UnityEngine.UI">
       <HintPath>..\..\..\..\..\..\..\opt\steam\.local\share\Steam\steamapps\common\Cities_Skylines\Cities_Data\Managed\UnityEngine.UI.dll</HintPath>
     </Reference>
+    <Reference Include="System.Xml.Serialization" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="JoystickCamera.cs" />
@@ -50,6 +52,7 @@
     <Compile Include="JoystickInputDef.cs" />
     <Compile Include="SettingsPanel.cs" />
     <Compile Include="UIPanelWrapper.cs" />
+    <Compile Include="Configuration.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

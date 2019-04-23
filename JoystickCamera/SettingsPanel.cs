@@ -75,6 +75,7 @@ namespace JoystickCamera {
 			ddInput.selectedIndex = (int)input.axis;
 			ddInput.eventSelectedIndexChanged += (component, value) => {
 				input.axis = (JoystickInputDef.Axis)value;
+				parent.SaveConfig();
 			};
 
 			//Add output dropdown
@@ -84,6 +85,7 @@ namespace JoystickCamera {
 			ddOutput.selectedIndex = (int)input.output;
 			ddOutput.eventSelectedIndexChanged += (component, value) => {
 				input.output = (JoystickInputDef.Output)value;
+				parent.SaveConfig();
 			};
 
 			//Add speed slider
@@ -94,6 +96,7 @@ namespace JoystickCamera {
 				tooltip: "How fast the camera should move")
 				.eventValueChanged += (component, value) => {
 					input.speed = value;
+					parent.SaveConfig();
 				};
 
 			//Add invert checkbox
@@ -101,6 +104,7 @@ namespace JoystickCamera {
 			"Move in opposite direction")
 			.eventClick += (component, eventParam) => {
 				input.sign = ((UICustomCheckbox)component).isChecked ? -1 : 1;
+				parent.SaveConfig();
 			};
 			panel.AddLabel("Invert", 400, 30);
 
@@ -111,12 +115,14 @@ namespace JoystickCamera {
 				tooltip: "Ignore movements less than this magnitude")
 				.eventValueChanged += (component, value) => {
 					input.deadZone = value / 100;
+					parent.SaveConfig();
 				};
 
 			//Add delete button
 			UIButton btnDelete = panel.AddButton("Delete Input", 380, 60, 110);
 			btnDelete.eventClicked += (component, eventParam) => {
 				parent.RemoveInput(input);
+				parent.SaveConfig();
 				root.parent.RemoveUIComponent(root);
 				UnityEngine.Object.Destroy(root);
 			};
@@ -130,6 +136,7 @@ namespace JoystickCamera {
 					JoystickInputDef.ModifierButton.SHIFT_ANY,
 					JoystickInputDef.ModifierCondition.HELD);
 				input.modifiers.Add(mod);
+				parent.SaveConfig();
 				panel.height += 25;
 				AddModifierWidgets(input, mod, panel, (int)panel.height - 25);
 			};
@@ -150,8 +157,10 @@ namespace JoystickCamera {
 
 			var drop = SubPanel.AddDropdown(name, 0, 0,
 				JoystickInputDef.modifierButtonName, "Which button to use");
+			drop.selectedIndex = (int)mod.button;
 			drop.eventSelectedIndexChanged += (component, value) => {
 				mod.button = (JoystickInputDef.ModifierButton)value;
+				parent.SaveConfig();
 			};
 
 			var lblHeld = SubPanel.AddLabel("Held", 230, 2);
@@ -164,23 +173,29 @@ namespace JoystickCamera {
 				mod.condition == JoystickInputDef.ModifierCondition.NOT_HELD,
 				"Button must not be held");
 
+			chkHeld.isChecked = (mod.condition == JoystickInputDef.ModifierCondition.HELD);
+			chkNotHeld.isChecked = (mod.condition == JoystickInputDef.ModifierCondition.NOT_HELD);
+
 			chkHeld.eventClicked += (component, eventParam) => {
 				mod.condition = chkHeld.isChecked ?
 					JoystickInputDef.ModifierCondition.HELD
 					: JoystickInputDef.ModifierCondition.NOT_HELD;
 				chkNotHeld.isChecked = !chkHeld.isChecked;
+				parent.SaveConfig();
 			};
 			chkNotHeld.eventClicked += (component, eventParam) => {
 				mod.condition = chkNotHeld.isChecked ?
 					JoystickInputDef.ModifierCondition.NOT_HELD
 					: JoystickInputDef.ModifierCondition.HELD;
 				chkHeld.isChecked = !chkNotHeld.isChecked;
+				parent.SaveConfig();
 			};
 
 			UIButton btnDeleteMod = SubPanel.AddButton("Delete", 370, 0, 70, 20,
 				"Delete this modifier");
 			btnDeleteMod.eventClicked += (component, eventParam) => {
 				input.modifiers.Remove(mod);
+				parent.SaveConfig();
 				panel.Remove(SubPanel.Panel);
 			};
 		}

@@ -4,6 +4,7 @@ using ColossalFramework.UI;
 using ICities;
 using UnityEngine;
 using static JoystickCamera.JoystickInputDef;
+using System.IO;
 
 namespace JoystickCamera {
 	public class JoystickCamera: ThreadingExtensionBase, IUserMod {
@@ -23,7 +24,33 @@ namespace JoystickCamera {
 			//(eg I can zoom out but not in).
 
 			inputs = new List<JoystickInputDef>();
-			AddDefaultInputs();
+			try {
+				LoadConfig();
+			}
+			catch(FileNotFoundException) {
+				Log("Config file not found");
+				AddDefaultInputs();
+				SaveConfig();
+			}
+			catch(System.IO.IOException ex) {
+				Log($"Error loading config file: {ex}");
+				AddDefaultInputs();
+			}
+		}
+
+		public void SaveConfig() {
+			Log("Saving config...");
+			ConfigData data = new ConfigData();
+			data.SetInputs(GetInputs());
+			(new Configuration()).Save(data);
+			Log("Saved config.");
+		}
+
+		public void LoadConfig() {
+			Log("Loading config...");
+			var data = (new Configuration()).Load();
+			this.inputs = data.GetInputs();
+			Log("Loaded config.");
 		}
 
 		public List<JoystickInputDef> GetInputs() {
@@ -53,9 +80,6 @@ namespace JoystickCamera {
 				axis: JoystickInputDef.Axis.VERTICAL,
 				output: JoystickInputDef.Output.CAMERA_MOVE_Z,
 				speed: 100
-			/* modifiers: new Modifier[] {
-				new Modifier(ModifierButton.SHIFT_ANY, ModifierCondition.NOT_HELD),
-			} */
 			));
 			inputs.Add(new JoystickInputDef(
 				axis: JoystickInputDef.Axis.ROTATION_HORIZONTAL_CAMERA,
