@@ -117,12 +117,8 @@ namespace JoystickCamera {
 			UIButton btnDelete = panel.AddButton("Delete Input", 380, 60, 110);
 			btnDelete.eventClicked += (component, eventParam) => {
 				parent.RemoveInput(input);
-				JoystickCamera.Log("Hiding the input group");
-				(group as UIPanel).Hide();
-				JoystickCamera.Log("Removing the input group");
-				((helper as UIHelper).self as UIPanel).RemoveUIComponent(
-					group as UIComponent);
-				JoystickCamera.Log("Removed the input group");
+				root.parent.RemoveUIComponent(root);
+				UnityEngine.Object.Destroy(root);
 			};
 
 			//Add modifiers header
