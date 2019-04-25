@@ -271,7 +271,12 @@ namespace JoystickCamera {
 			Vector3 targetPos = currentPos;
 
 			//Transform relative to camera angle
-			translateRelative = cameraController.transform.localToWorldMatrix.MultiplyVector(translateRelative);
+			//translateRelative = cameraController.transform.localToWorldMatrix.MultiplyVector(translateRelative);
+			var angle = cameraController.m_currentAngle.x;
+			float rx = translateRelative.x * Mathf.Cos(angle) + translateRelative.z * Mathf.Sin(angle);
+			float rz = -translateRelative.x * Mathf.Sin(angle) + translateRelative.z * Mathf.Cos(angle);
+			translateRelative.x = rx;
+			translateRelative.z = rz;
 			targetPos.x += translateRelative.x + translateWorld.x;
 			targetPos.y += translateRelative.y + translateWorld.y;
 			targetPos.z += translateRelative.z + translateWorld.z;
