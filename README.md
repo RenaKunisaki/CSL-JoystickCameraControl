@@ -18,10 +18,12 @@ You can add modifier keys to each input, to use one axis for multiple controls. 
 
 For example, you could set the Horizontal and Vertical axes to Move Left/Right and Move Forward/Backward when Shift is not held, and to Move East/West and Move North/South when shift is held.
 
+By adding modifiers to the mouse inputs, you can use the mouse to pan and rotate while holding a key, which is useful even without a joystick.
+
 # Known Issues
 * Only five input axes (excluding the mouse) can be used (see Issue #1) because Unity is silly.
-* Moving the camera up/down is usually ignored by the game. As a result, forward/backward movement can be slow (since it can translate into some up/down movement).
-* To build on Linux/Mac, you must set `STEAMPATH` environment variable, eg `/home/steam/.local/share/Steam`.
+* Moving the camera up/down is usually ignored by the game.
+* To build on Linux/Mac, you must set `STEAMPATH` environment variable, eg `/home/steam/`.
 
 # Possible Future Features
 * Different profiles per joystick.
@@ -34,6 +36,7 @@ For example, you could set the Horizontal and Vertical axes to Move Left/Right a
 * Force feedback in whatever appropriate situation.
 * Option to disable input smoothing.
 * Map camera position/angle directly to an axis (ie the camera position is exactly the joystick position).
+* "Panic button" to reset camera to a sane state.
 
 # Thanks to
 * Egi, boformer, Elektrix for help with the API.
