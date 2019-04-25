@@ -56,7 +56,8 @@ namespace JoystickCamera {
 			panel.AddCheckbox("debug", 0, 145, parent.enableDebugDisplay,
 			"Show debug info in-game.")
 			.eventClick += (component, eventParam) => {
-				parent.enableDebugDisplay = ((UICustomCheckbox)component).isChecked;
+				//wtf
+				parent.enableDebugDisplay = !((UICustomCheckbox)component).isChecked;
 				//parent.SaveConfig();
 			};
 			panel.AddLabel("Show Debug Info", 20, 145);

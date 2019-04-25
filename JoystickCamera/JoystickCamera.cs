@@ -228,11 +228,18 @@ namespace JoystickCamera {
 
 			if(enableDebugDisplay) {
 				if(this.debugDisplay == null) {
+					Log("Creating debug display");
 					this.debugDisplay = new DebugCameraDisplay();
 				}
 				this.debugDisplay.Update();
 			}
-			else this.debugDisplay = null;
+			else {
+				if(this.debugDisplay != null) {
+					Log("Removing debug display");
+					this.debugDisplay.Remove();
+				}
+				this.debugDisplay = null;
+			}
 
 			float t = realTimeDelta * 60; //should be ~1/60 of a second
 			Vector3 translateRelative = new Vector3(0, 0, 0); //screen relative movement

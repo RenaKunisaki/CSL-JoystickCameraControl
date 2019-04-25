@@ -50,8 +50,11 @@ namespace JoystickCamera {
 			};
 		}
 
-		~DebugCameraDisplay() {
+		public void Remove() {
 			//UIView view = GameObject.FindObjectOfType<UIView>();
+			foreach(KeyValuePair<string, UICustomLabel> item in this.labels) {
+				this.panel.Remove(item.Value);
+			}
 			UnityEngine.Object.Destroy(this.panel.Panel);
 		}
 
