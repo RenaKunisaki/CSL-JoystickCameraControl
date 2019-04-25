@@ -37,6 +37,13 @@ namespace JoystickCamera {
 				AddInput(parent.AddInput());
 			});
 
+			groupG.AddButton("Reset Camera", () => {
+				GameObject gameObject = GameObject.FindGameObjectWithTag("MainCamera");
+				if(gameObject == null) return;
+				CameraController cameraController = gameObject.GetComponent<CameraController>();
+				cameraController.Reset(Vector3.zero);
+			});
+
 			AddCurrentValues();
 			foreach(JoystickInputDef input in parent.GetInputs()) {
 				AddInput(input);
