@@ -271,8 +271,13 @@ namespace JoystickCamera {
 			Vector3 targetPos = currentPos;
 
 			//Transform relative to camera angle
+			//Ignore Y rotation, only use X (which is actually the Y axis rotation >.>)
+			//because otherwise, when looking down, "forward" is down, and the game
+			//doesn't like to let you change height, and probably you want to pan
+			//instead of zooming anyway.
+			//Some of this borrowed from https://github.com/brittanygh/CS-CameraButtons/blob/master/CameraButtons/Class1.cs
 			//translateRelative = cameraController.transform.localToWorldMatrix.MultiplyVector(translateRelative);
-			var angle = cameraController.m_currentAngle.x;
+			var angle = cameraController.m_currentAngle.x * PI_OVER_180;
 			float rx = translateRelative.x * Mathf.Cos(angle) + translateRelative.z * Mathf.Sin(angle);
 			float rz = -translateRelative.x * Mathf.Sin(angle) + translateRelative.z * Mathf.Cos(angle);
 			translateRelative.x = rx;
