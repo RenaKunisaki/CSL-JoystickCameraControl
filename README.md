@@ -42,4 +42,5 @@ By adding modifiers to the mouse inputs, you can use the mouse to pan and rotate
 * Egi, boformer, Elektrix for help with the API.
 * tomarus for the UI code I "borrowed" from TerrainGen.
 * andrief for ilspymono, and the ilspy developers, for tools necessary to find axis definitions.
+* Icons from [Gnome project](https://commons.wikimedia.org/wiki/File:Gnome-joystick.svg) and [The Noun Project](https://commons.wikimedia.org/wiki/File:Video_Camera_-_The_Noun_Project.svg).
 * My cat for reminding me to take breaks.
