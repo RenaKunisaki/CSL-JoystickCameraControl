@@ -31,7 +31,8 @@ namespace JoystickCamera {
 				"   or converted into forward/backward movement.\n" +
 				"· Up/Down rotation can confuse the camera about which\n" +
 				"   direction is forward; probably you want Zoom instead.\n" +
-				"   To fix it, turn back the other way or do a full circle.";
+				"   To fix it, turn back the other way or do a full circle,\n" +
+				"   or use the reset button below.";
 
 			groupG.AddButton("Add New Input", () => {
 				AddInput(parent.AddInput());
