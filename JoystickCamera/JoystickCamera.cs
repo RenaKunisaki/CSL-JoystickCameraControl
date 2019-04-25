@@ -13,7 +13,7 @@ namespace JoystickCamera {
 		protected List<JoystickInputDef> inputs;
 		protected SettingsPanel settingsPanel;
 		protected DebugCameraDisplay debugDisplay;
-		public bool enableDebugDisplay = false;
+		public bool enableDebugDisplay = true;
 
 		public JoystickCamera() {
 			Log("Instantiated");
