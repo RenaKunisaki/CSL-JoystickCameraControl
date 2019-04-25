@@ -14,6 +14,7 @@ namespace JoystickCamera {
 		protected SettingsPanel settingsPanel;
 		protected DebugCameraDisplay debugDisplay;
 		public bool enableDebugDisplay = false;
+		protected bool didMoveWithMouse = false;
 
 		public JoystickCamera() {
 			Log("Instantiated");
@@ -332,14 +333,30 @@ namespace JoystickCamera {
 			targetPos.z += translateRelative.z + translateWorld.z;
 
 			float epsilon = 0.001f;
-			if(Mathf.Abs(translateRelative.x) > epsilon
+			bool anyMovement = (Mathf.Abs(translateRelative.x) > epsilon
 			|| Mathf.Abs(translateRelative.y) > epsilon
 			|| Mathf.Abs(translateRelative.z) > epsilon
 			|| Mathf.Abs(translateWorld.x) > epsilon
 			|| Mathf.Abs(translateWorld.y) > epsilon
-			|| Mathf.Abs(translateWorld.z) > epsilon) {
-				cameraController.ClearTarget();
+			|| Mathf.Abs(translateWorld.z) > epsilon);
+			bool anyRotation = (Mathf.Abs(rotate.x) > epsilon || Mathf.Abs(rotate.y) > epsilon);
+			bool anyMouse = modifiers[ModifierButton.MOUSE1] || modifiers[ModifierButton.MOUSE2]
+				|| modifiers[ModifierButton.MOUSE3] || modifiers[ModifierButton.MOUSE4]
+				|| modifiers[ModifierButton.MOUSE5] || modifiers[ModifierButton.MOUSE6]
+				|| modifiers[ModifierButton.MOUSE7];
+
+			if(anyMovement) cameraController.ClearTarget();
+
+			if(anyMouse && (anyMovement || anyRotation)) didMoveWithMouse = true;
+			else if(!anyMouse) didMoveWithMouse = false;
+
+			if(didMoveWithMouse) { //lock the mouse
+				Cursor.lockState = CursorLockMode.Locked;
+				//keep it visible or else the game will unlock it again.
+				//it actually does hide, anyway.
+				Cursor.visible = true;
 			}
+			else Cursor.lockState = CursorLockMode.None;
 
 			cameraController.m_targetPosition = targetPos;
 			cameraController.m_targetAngle.x += rotate.x;
