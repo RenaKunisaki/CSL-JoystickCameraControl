@@ -13,7 +13,7 @@ namespace JoystickCamera {
 		protected List<JoystickInputDef> inputs;
 		protected SettingsPanel settingsPanel;
 		protected DebugCameraDisplay debugDisplay;
-		public bool enableDebugDisplay = true;
+		public bool enableDebugDisplay = false;
 
 		public JoystickCamera() {
 			Log("Instantiated");
@@ -302,6 +302,16 @@ namespace JoystickCamera {
 			targetPos.x += translateRelative.x + translateWorld.x;
 			targetPos.y += translateRelative.y + translateWorld.y;
 			targetPos.z += translateRelative.z + translateWorld.z;
+
+			float epsilon = 0.001f;
+			if(Mathf.Abs(translateRelative.x) > epsilon
+			|| Mathf.Abs(translateRelative.y) > epsilon
+			|| Mathf.Abs(translateRelative.z) > epsilon
+			|| Mathf.Abs(translateWorld.x) > epsilon
+			|| Mathf.Abs(translateWorld.y) > epsilon
+			|| Mathf.Abs(translateWorld.z) > epsilon) {
+				cameraController.ClearTarget();
+			}
 
 			cameraController.m_targetPosition = targetPos;
 			cameraController.m_targetAngle.x += rotate.x;
