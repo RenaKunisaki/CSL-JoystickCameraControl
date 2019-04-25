@@ -35,6 +35,18 @@ namespace JoystickCamera {
 	}
 
 	/// <summary>
+	/// A custom label widget.
+	/// </summary>
+	public class UICustomLabel: UILabel {
+		public delegate void OnUpdateDelegate();
+		public OnUpdateDelegate OnUpdate;
+		public new virtual void Update() {
+			base.Update();
+			if(OnUpdate != null) OnUpdate.Invoke();
+		}
+	}
+
+	/// <summary>
 	/// A wrapper for UIPanel that provides some helpful methods.
 	/// </summary>
 	public class UIPanelWrapper {
@@ -107,8 +119,8 @@ namespace JoystickCamera {
 		/// <param name="text">Text.</param>
 		/// <param name="x">X coord of label in the panel.</param>
 		/// <param name="y">Y coord of label in the panel.</param>
-		public UILabel AddLabel(string text, int x, int y) {
-			UILabel label = panel.AddUIComponent<UILabel>();
+		public UICustomLabel AddLabel(string text, int x, int y) {
+			UICustomLabel label = panel.AddUIComponent<UICustomLabel>();
 			this.children.Add(label);
 			label.relativePosition = new Vector3(x, y, 0);
 			label.text = text;

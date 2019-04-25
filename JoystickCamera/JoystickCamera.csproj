@@ -53,6 +53,7 @@
     <Compile Include="SettingsPanel.cs" />
     <Compile Include="UIPanelWrapper.cs" />
     <Compile Include="Configuration.cs" />
+    <Compile Include="DebugCameraDisplay.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

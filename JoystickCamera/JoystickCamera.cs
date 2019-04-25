@@ -12,6 +12,7 @@ namespace JoystickCamera {
 		public readonly float PI_OVER_180 = Mathf.PI / 180f;
 		protected List<JoystickInputDef> inputs;
 		protected SettingsPanel settingsPanel;
+		protected DebugCameraDisplay debugDisplay;
 
 		public JoystickCamera() {
 			Log("Instantiated");
@@ -223,6 +224,11 @@ namespace JoystickCamera {
 		public override void OnUpdate(float realTimeDelta, float simulationTimeDelta) {
 			GameObject gameObject = GameObject.FindGameObjectWithTag("MainCamera");
 			if(gameObject == null) return;
+
+			if(this.debugDisplay == null) {
+				this.debugDisplay = new DebugCameraDisplay();
+			}
+			this.debugDisplay.Update();
 
 			float t = realTimeDelta * 60; //should be ~1/60 of a second
 			Vector3 translateRelative = new Vector3(0, 0, 0); //screen relative movement
