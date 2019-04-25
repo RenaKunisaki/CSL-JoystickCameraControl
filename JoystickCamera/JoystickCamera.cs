@@ -13,6 +13,7 @@ namespace JoystickCamera {
 		protected List<JoystickInputDef> inputs;
 		protected SettingsPanel settingsPanel;
 		protected DebugCameraDisplay debugDisplay;
+		public bool enableDebugDisplay = false;
 
 		public JoystickCamera() {
 			Log("Instantiated");
@@ -225,10 +226,13 @@ namespace JoystickCamera {
 			GameObject gameObject = GameObject.FindGameObjectWithTag("MainCamera");
 			if(gameObject == null) return;
 
-			if(this.debugDisplay == null) {
-				this.debugDisplay = new DebugCameraDisplay();
+			if(enableDebugDisplay) {
+				if(this.debugDisplay == null) {
+					this.debugDisplay = new DebugCameraDisplay();
+				}
+				this.debugDisplay.Update();
 			}
-			this.debugDisplay.Update();
+			else this.debugDisplay = null;
 
 			float t = realTimeDelta * 60; //should be ~1/60 of a second
 			Vector3 translateRelative = new Vector3(0, 0, 0); //screen relative movement

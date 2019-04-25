@@ -23,29 +23,48 @@ namespace JoystickCamera {
 		public void Run() {
 			this.root = ((helper as UIHelper).self as UIComponent);
 
-			//Add notes and New Input button.
+			//Add notes
 			UIHelperBase groupG = helper.AddGroup("Note:");
-			((groupG as UIHelper).self as UIComponent).AddUIComponent<UILabel>()
-				.text =
+			var groupRoot = ((groupG as UIHelper).self as UIComponent);
+			var panel = this.AddPanel(groupRoot, "general", 0, 0, 600, 160);
+			panel.AddLabel(
 				"· Up/Down movement is usually ignored by the game,\n" +
 				"   or converted into forward/backward movement.\n" +
 				"· Up/Down rotation can confuse the camera about which\n" +
 				"   direction is forward; probably you want Zoom instead.\n" +
 				"   To fix it, turn back the other way or do a full circle,\n" +
-				"   or use the reset button below.";
+				"   or use the reset button below.", 0, 0);
 
-			groupG.AddButton("Add New Input", () => {
+			//Add New Input button
+			UIButton btnAdd = panel.AddButton("Add New Input", 0, 110, 130, 30,
+				"Add an input.");
+			btnAdd.eventClicked += (component, eventParam) => {
 				AddInput(parent.AddInput());
-			});
+			};
 
-			groupG.AddButton("Reset Camera", () => {
+			//Add Reset Camera button
+			UIButton btnReset = panel.AddButton("Reset Camera", 140, 110, 130, 30,
+				"Reset camera to a sane state.");
+			btnAdd.eventClicked += (component, eventParam) => {
 				GameObject gameObject = GameObject.FindGameObjectWithTag("MainCamera");
 				if(gameObject == null) return;
 				CameraController cameraController = gameObject.GetComponent<CameraController>();
 				cameraController.Reset(Vector3.zero);
-			});
+			};
 
+			//Add debug toggle
+			panel.AddCheckbox("debug", 0, 145, parent.enableDebugDisplay,
+			"Show debug info in-game.")
+			.eventClick += (component, eventParam) => {
+				parent.enableDebugDisplay = ((UICustomCheckbox)component).isChecked;
+				//parent.SaveConfig();
+			};
+			panel.AddLabel("Show Debug Info", 20, 145);
+
+			//Add current value display
 			AddCurrentValues();
+
+			//Add inputs
 			foreach(JoystickInputDef input in parent.GetInputs()) {
 				AddInput(input);
 			}
