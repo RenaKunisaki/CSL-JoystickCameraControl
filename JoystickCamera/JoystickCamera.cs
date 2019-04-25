@@ -206,7 +206,14 @@ namespace JoystickCamera {
 				{ ModifierButton.CMD_RIGHT, Input.GetKey(KeyCode.RightCommand) },
 				{ ModifierButton.WIN_LEFT, Input.GetKey(KeyCode.LeftWindows) },
 				{ ModifierButton.WIN_RIGHT, Input.GetKey(KeyCode.RightWindows) },
-				//Unity uses 0-based buttons but literally no joystick ever does
+				//Unity uses 0-based buttons but literally no joystick/mouse ever does
+				{ ModifierButton.MOUSE1, Input.GetKey(KeyCode.Mouse0) },
+				{ ModifierButton.MOUSE2, Input.GetKey(KeyCode.Mouse1) },
+				{ ModifierButton.MOUSE3, Input.GetKey(KeyCode.Mouse2) },
+				{ ModifierButton.MOUSE4, Input.GetKey(KeyCode.Mouse3) },
+				{ ModifierButton.MOUSE5, Input.GetKey(KeyCode.Mouse4) },
+				{ ModifierButton.MOUSE6, Input.GetKey(KeyCode.Mouse5) },
+				{ ModifierButton.MOUSE7, Input.GetKey(KeyCode.Mouse6) },
 				{ ModifierButton.BUTTON1, Input.GetKey(KeyCode.JoystickButton0) },
 				{ ModifierButton.BUTTON2, Input.GetKey(KeyCode.JoystickButton1) },
 				{ ModifierButton.BUTTON3, Input.GetKey(KeyCode.JoystickButton2) },
