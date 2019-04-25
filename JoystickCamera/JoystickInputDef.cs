@@ -78,6 +78,10 @@ namespace JoystickCamera {
 			ALT_LEFT, ALT_RIGHT, ALT_ANY,
 			CMD_LEFT, CMD_RIGHT, CMD_ANY,
 			WIN_LEFT, WIN_RIGHT, WIN_ANY,
+			BUTTON1, BUTTON2, BUTTON3, BUTTON4, BUTTON5,
+			BUTTON6, BUTTON7, BUTTON8, BUTTON9, BUTTON10,
+			BUTTON11, BUTTON12, BUTTON13, BUTTON14, BUTTON15,
+			BUTTON16, BUTTON17, BUTTON18, BUTTON19, BUTTON20,
 			Length
 		};
 		public static readonly string[] modifierButtonName = {
@@ -86,6 +90,10 @@ namespace JoystickCamera {
 			"Left Alt", "Right Alt", "Either Alt",
 			"Left Command", "Right Command", "Either Command",
 			"Left Windows", "Right Windows", "Either Windows",
+			"Button 1", "Button 2", "Button 3", "Button 4", "Button 5",
+			"Button 6", "Button 7", "Button 8", "Button 9", "Button 10",
+			"Button 11", "Button 12", "Button 13", "Button 14", "Button 15",
+			"Button 16", "Button 17", "Button 18", "Button 19", "Button 20",
 		};
 		public class Modifier {
 			public ModifierButton button;

@@ -205,7 +205,28 @@ namespace JoystickCamera {
 				{ ModifierButton.CMD_LEFT, Input.GetKey(KeyCode.LeftCommand) },
 				{ ModifierButton.CMD_RIGHT, Input.GetKey(KeyCode.RightCommand) },
 				{ ModifierButton.WIN_LEFT, Input.GetKey(KeyCode.LeftWindows) },
-				{ ModifierButton.WIN_RIGHT, Input.GetKey(KeyCode.RightWindows) }
+				{ ModifierButton.WIN_RIGHT, Input.GetKey(KeyCode.RightWindows) },
+				//Unity uses 0-based buttons but literally no joystick ever does
+				{ ModifierButton.BUTTON1, Input.GetKey(KeyCode.JoystickButton0) },
+				{ ModifierButton.BUTTON2, Input.GetKey(KeyCode.JoystickButton1) },
+				{ ModifierButton.BUTTON3, Input.GetKey(KeyCode.JoystickButton2) },
+				{ ModifierButton.BUTTON4, Input.GetKey(KeyCode.JoystickButton3) },
+				{ ModifierButton.BUTTON5, Input.GetKey(KeyCode.JoystickButton4) },
+				{ ModifierButton.BUTTON6, Input.GetKey(KeyCode.JoystickButton5) },
+				{ ModifierButton.BUTTON7, Input.GetKey(KeyCode.JoystickButton6) },
+				{ ModifierButton.BUTTON8, Input.GetKey(KeyCode.JoystickButton7) },
+				{ ModifierButton.BUTTON9, Input.GetKey(KeyCode.JoystickButton8) },
+				{ ModifierButton.BUTTON10, Input.GetKey(KeyCode.JoystickButton9) },
+				{ ModifierButton.BUTTON11, Input.GetKey(KeyCode.JoystickButton10) },
+				{ ModifierButton.BUTTON12, Input.GetKey(KeyCode.JoystickButton11) },
+				{ ModifierButton.BUTTON13, Input.GetKey(KeyCode.JoystickButton12) },
+				{ ModifierButton.BUTTON14, Input.GetKey(KeyCode.JoystickButton13) },
+				{ ModifierButton.BUTTON15, Input.GetKey(KeyCode.JoystickButton14) },
+				{ ModifierButton.BUTTON16, Input.GetKey(KeyCode.JoystickButton15) },
+				{ ModifierButton.BUTTON17, Input.GetKey(KeyCode.JoystickButton16) },
+				{ ModifierButton.BUTTON18, Input.GetKey(KeyCode.JoystickButton17) },
+				{ ModifierButton.BUTTON19, Input.GetKey(KeyCode.JoystickButton18) },
+				{ ModifierButton.BUTTON20, Input.GetKey(KeyCode.JoystickButton19) },
 			};
 			modifiers[ModifierButton.SHIFT_ANY] = modifiers[ModifierButton.SHIFT_LEFT] || modifiers[ModifierButton.SHIFT_RIGHT];
 			modifiers[ModifierButton.CTRL_ANY] = modifiers[ModifierButton.CTRL_LEFT] || modifiers[ModifierButton.CTRL_RIGHT];
