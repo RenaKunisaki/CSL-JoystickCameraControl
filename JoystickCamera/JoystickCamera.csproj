@@ -60,8 +60,8 @@
 del "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)\$(TargetFileName)"
 xcopy /Y "$(TargetPath)" "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)"
 </PostBuildEvent>
-    <PostBuildEvent Condition="'$(OS)' != 'Windows_NT' ">mkdir -p "$STEAMPATH/.local/share/Colossal Order/Cities_Skylines/Addons/Mods/$(SolutionName)"
-rm "$STEAMPATH/.local/share/Colossal Order/Cities_Skylines/Addons/Mods/$(SolutionName)/$(TargetFileName)"
-cp -r "$(TargetPath)" "$STEAMPATH/.local/share/Colossal Order/Cities_Skylines/Addons/Mods/$(SolutionName)"</PostBuildEvent>
+    <PostBuildEvent Condition="'$(OS)' != 'Windows_NT' ">mkdir -p "$STEAMPATH/.local/share/Steam/steamapps/workshop/content/255710/1721824249/"
+rm "$STEAMPATH/.local/share/Steam/steamapps/workshop/content/255710/1721824249/$(TargetFileName)"
+cp -r "$(TargetPath)" "$STEAMPATH/.local/share/Steam/steamapps/workshop/content/255710/1721824249/$(TargetFileName)"</PostBuildEvent>
   </PropertyGroup>
 </Project>

@@ -23,6 +23,7 @@ namespace JoystickCamera {
 			public float sign;
 			public float deadZone;
 			public float offset;
+			public bool smoothing;
 
 			[XmlArray("modifiers")]
 			public List<ModifierDef> modifiers;
@@ -54,7 +55,7 @@ namespace JoystickCamera {
 				var inputDef = new JoystickInputDef(
 					(JoystickInputDef.Axis)axisIdx,
 					(JoystickInputDef.Output)outputIdx,
-					input.speed, input.sign, input.deadZone, input.offset);
+					input.speed, input.sign, input.deadZone, input.offset, input.smoothing);
 
 				foreach(var mod in input.modifiers) {
 					int btnIdx = Array.IndexOf(JoystickInputDef.modifierButtonName, mod.button);
@@ -93,6 +94,7 @@ namespace JoystickCamera {
 					sign = input.sign,
 					deadZone = input.deadZone,
 					offset = input.offset,
+					smoothing = input.smoothing,
 				};
 				item.modifiers = new List<ModifierDef>(input.modifiers.Count);
 				foreach(var mod in input.modifiers) {

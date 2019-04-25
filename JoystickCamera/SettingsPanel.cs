@@ -139,6 +139,15 @@ namespace JoystickCamera {
 			};
 			panel.AddLabel("Invert", 400, 30);
 
+			//Add smoothing checkbox.
+			panel.AddCheckbox("smoothing", 465, 30, input.smoothing,
+			"Use Unity's input smoothing.")
+			.eventClick += (component, eventParam) => {
+				input.smoothing = ((UICustomCheckbox)component).isChecked;
+				parent.SaveConfig();
+			};
+			panel.AddLabel("Smoothing", 485, 30);
+
 			//Add deadzone slider.
 			panel.AddLabel("Dead Zone:", 0, 60);
 			panel.AddSlider(name: "deadzone", x: 150, y: 60,
@@ -159,7 +168,7 @@ namespace JoystickCamera {
 				};
 
 			//Add delete button.
-			UIButton btnDelete = panel.AddButton("Delete Input", 465, 30, 110, 20,
+			UIButton btnDelete = panel.AddButton("Delete Input", 575, 0, 110, 20,
 				"Delete this input.");
 			btnDelete.eventClicked += (component, eventParam) => {
 				parent.RemoveInput(input);
