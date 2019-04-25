@@ -23,7 +23,7 @@ namespace JoystickCamera {
 			public float sign;
 			public float deadZone;
 			public float offset;
-			public bool smoothing;
+			public bool smoothing = true;
 
 			[XmlArray("modifiers")]
 			public List<ModifierDef> modifiers;
