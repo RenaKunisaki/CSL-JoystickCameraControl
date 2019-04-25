@@ -10,8 +10,9 @@ Enable the mod and go to the Options menu. It displays a list of default input s
 * Invert: Moves in the opposite direction of the input.
 * Dead Zone: Inputs less than this will be ignored. Useful for old joysticks that jitter when not actually being moved.
 * Offset: Added to the input (before dead zone). Useful for joysticks that have a slider whose neutral point isn't the centre.
+* Smoothing: Whether to use Unity's input smoothing feature.
 
-Also, the current inputs are shown, so you can see which is which.
+Also, the current inputs are shown, so you can see which is which. You can also reset the camera to a sane state in case it gets stuck somewhere.
 
 ## Modifiers
 You can add modifier keys to each input, to use one axis for multiple controls. Each modifier specifies a button, and whether the input is active when that button is held, or not held.
@@ -34,9 +35,7 @@ By adding modifiers to the mouse inputs, you can use the mouse to pan and rotate
 * Use extra mice/drawing tablets/... as inputs.
   * Accept inputs over local TCP/UDP port.
 * Force feedback in whatever appropriate situation.
-* Option to disable input smoothing.
 * Map camera position/angle directly to an axis (ie the camera position is exactly the joystick position).
-* "Panic button" to reset camera to a sane state.
 
 # Thanks to
 * Egi, boformer, Elektrix for help with the API.
