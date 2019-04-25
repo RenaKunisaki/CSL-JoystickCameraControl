@@ -85,7 +85,7 @@ namespace JoystickCamera {
 				var panel = this.AddPanel(groupRoot, "display_" + axis, 0, y, 400, 30);
 				panel.AddLabel(axis, 0, 0);
 				var slider = panel.AddSlider(axis + "_curval",
-					x: 150, y: 0, value: 0, min: -100, max: 100, step: 1);
+					x: 220, y: 0, value: 0, min: -100, max: 100, step: 1);
 				y += 25;
 
 				slider.isInteractive = false;
