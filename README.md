@@ -15,7 +15,7 @@ Enable the mod and go to the Options menu. It displays a list of default input s
 Also, the current inputs are shown, so you can see which is which. You can also reset the camera to a sane state in case it gets stuck somewhere.
 
 ## Modifiers
-You can add modifier keys to each input, to use one axis for multiple controls. Each modifier specifies a button, and whether the input is active when that button is held, or not held.
+You can add modifier keys to each input, to use one axis for multiple controls. Each modifier specifies a button, and whether the input is active when that button is held, or not held. The joystick's buttons can also be used as modifiers.
 
 For example, you could set the Horizontal and Vertical axes to Move Left/Right and Move Forward/Backward when Shift is not held, and to Move East/West and Move North/South when shift is held.
 
@@ -28,7 +28,6 @@ By adding modifiers to the mouse inputs, you can use the mouse to pan and rotate
 
 # Possible Future Features
 * Different profiles per joystick.
-* Using joystick buttons and other keys as modifiers.
 * Control more than just camera; eg use a slider to adjust game speed.
   * Bind buttons to game functions. (Steam already has this built in though.)
   * Let one axis control the movement speed of another. (eg for joysticks that have a non-spring-loaded slider)
