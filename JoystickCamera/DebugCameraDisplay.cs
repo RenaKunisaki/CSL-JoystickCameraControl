@@ -15,6 +15,7 @@ namespace JoystickCamera {
 			UIView view = GameObject.FindObjectOfType<UIView>();
 			UIPanel p = (UIPanel)view.AddUIComponent(typeof(UIPanel));
 			this.panel = new UIPanelWrapper(p, "CameraDebug", 256, 8, 320, 256);
+			panel.Panel.SendToBack();
 
 			//add static labels
 			panel.AddLabel("Axis", 0, 0);
