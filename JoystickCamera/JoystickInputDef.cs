@@ -118,6 +118,9 @@ namespace JoystickCamera {
 		public float deadZone = 0; //ignore input less than this magnitude
 		public float offset = 0; //add offset to input
 		public bool smoothing = true; //use input smoothing
+		public bool relative = false; //use relative input
+		public float prevValue = 0;
+		public float lastValue = 0; //for debug
 		public List<Modifier> modifiers = new List<Modifier>();
 		public Output output; //the output variable to control
 
@@ -218,10 +221,18 @@ namespace JoystickCamera {
 			}
 			else {
 				val = (float)this.device.GetAxes()[this.axisName];
+				if(smoothing) {
+					val = Mathf.MoveTowards(val, prevValue, Time.deltaTime);
+				}
 			}
-			val += offset;
-			if(val > -deadZone && val < deadZone) val = 0;
-			return val * speed * sign;
+			float retval = val;
+			if(relative) retval -= prevValue;
+			prevValue = val;
+
+			retval += offset;
+			if(retval > -deadZone && retval < deadZone) retval = 0;
+			lastValue = retval;
+			return retval * speed * sign;
 		}
 	}
 }

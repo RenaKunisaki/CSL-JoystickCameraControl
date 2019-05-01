@@ -183,16 +183,18 @@ namespace JoystickCamera {
 						var prevVal = inputParser.GetPreviousValue(idx);
 						var newVal = inputParser.GetValue(idx);
 						var usage = (HidSharp.Reports.Usage)newVal.Usages.FirstOrDefault();
-						var prevPhysVal = prevVal.GetPhysicalValue();
-						var newPhysVal = newVal.GetPhysicalValue();
+						//var prevPhysVal = prevVal.GetPhysicalValue();
+						//var newPhysVal = newVal.GetPhysicalValue();
+						var prevLogVal = prevVal.GetLogicalValue();
+						var newLogVal = newVal.GetLogicalValue();
 
 						//If this is a button or axis, update it.
 						if((int)usage >= (int)HidSharp.Reports.Usage.Button1
 						&& (int)usage <= (int)HidSharp.Reports.Usage.Button31) {
-							buttons[(int)usage - (int)HidSharp.Reports.Usage.Button1] = (newPhysVal > 0);
+							buttons[(int)usage - (int)HidSharp.Reports.Usage.Button1] = (newLogVal > 0);
 						}
 						else if(usageNames.ContainsKey(usage)) {
-							axes[usage].value = newPhysVal;
+							axes[usage].value = newLogVal;
 						}
 						//Log($"Input change: {usage}: {prevPhysVal} -> {newPhysVal}");
 					}

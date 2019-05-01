@@ -79,15 +79,20 @@ namespace JoystickCamera {
 		protected void AddCurrentValues() {
 			UIHelperBase groupV = helper.AddGroup("Current Input Values");
 			var groupRoot = ((groupV as UIHelper).self as UIComponent);
-			int y = 0;
+			int x = 0, y = 0;
 			foreach(string axis in JoystickInputDef.axisNames) {
 				if(axis == "None") continue;
 
-				var panel = this.AddPanel(groupRoot, "display_" + axis, 0, y, 400, 30);
+				var panel = this.AddPanel(groupRoot, "display_" + axis, x, y, 250, 30);
 				panel.AddLabel(axis, 0, 0);
 				var slider = panel.AddSlider(axis + "_curval",
 					x: 220, y: 0, value: 0, min: -100, max: 100, step: 1);
-				y += 25;
+				//y += 25;
+				x += 250;
+				if(x >= 500) {
+					x = 0;
+					y += 25;
+				}
 
 				slider.isInteractive = false;
 				slider.OnUpdate += () => {

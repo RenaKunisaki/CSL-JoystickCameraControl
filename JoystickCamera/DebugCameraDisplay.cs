@@ -52,6 +52,7 @@ namespace JoystickCamera {
 				{ "tsize",   panel.AddLabel("", 160,  98) },
 				{ "target",  panel.AddLabel("",   0, 112) },
 				{ "moving",  panel.AddLabel("",   0, 126) },
+				{ "input",   panel.AddLabel("",   0, 140) },
 			};
 		}
 
@@ -123,6 +124,16 @@ namespace JoystickCamera {
 					case "moving":
 						item.Value.text = parent.DidMoveWithMouse ? "moving" : "";
 						break;
+					case "input": {
+							var inputs = parent.GetInputs();
+							var x = inputs[0].lastValue.ToString("###0.00");
+							var y = inputs[1].lastValue.ToString("###0.00");
+							var px = inputs[0].prevValue.ToString("###0.00");
+							var py = inputs[1].prevValue.ToString("###0.00");
+							JoystickCamera.Log($"In {x} {y} p {px} {py}");
+							item.Value.text = $"Input {x}\t{y}\nPrev {px}\t{py}";
+							break;
+						}
 					default:
 						item.Value.text = values[item.Key].ToString("###0.000");
 						break;

@@ -279,6 +279,10 @@ namespace JoystickCamera {
 			GameObject gameObject = GameObject.FindGameObjectWithTag("MainCamera");
 			if(gameObject == null) return;
 
+			foreach(var device in rawDevices) {
+				device.Update();
+			}
+
 			if(enableDebugDisplay) {
 				if(this.debugDisplay == null) {
 					Log("Creating debug display");
@@ -292,10 +296,6 @@ namespace JoystickCamera {
 					this.debugDisplay.Remove();
 				}
 				this.debugDisplay = null;
-			}
-
-			foreach(var device in rawDevices) {
-				device.Update();
 			}
 
 			float t = realTimeDelta * 60; //should be ~1/60 of a second
@@ -338,6 +338,8 @@ namespace JoystickCamera {
 						break;
 				}
 			}
+
+			//Log($"T {translateRelative.x} {translateRelative.y} {translateRelative.z}");
 
 			//Get camera objects and current position
 			CameraController cameraController = gameObject.GetComponent<CameraController>();
