@@ -284,7 +284,13 @@ namespace JoystickCamera {
 			if(gameObject == null) return;
 
 			foreach(var device in rawDevices) {
-				device.Update();
+				try {
+					device.Update();
+				}
+				catch(IOException) {
+					//ignore, device probably was disconnected.
+					//best to just let the game keep running...
+				}
 			}
 
 			if(enableDebugDisplay) {
