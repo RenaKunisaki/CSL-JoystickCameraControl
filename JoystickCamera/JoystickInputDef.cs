@@ -220,7 +220,7 @@ namespace JoystickCamera {
 				val = smoothing ? Input.GetAxis(name) : Input.GetAxisRaw(name);
 			}
 			else {
-				val = (float)this.device.GetAxes()[this.axisName];
+				val = (float)this.device.GetAxes()[this.axisName] / 100;
 				if(smoothing) {
 					val = Mathf.MoveTowards(val, prevValue, Time.deltaTime);
 				}
