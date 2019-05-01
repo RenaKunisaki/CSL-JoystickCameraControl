@@ -65,7 +65,10 @@ namespace JoystickCamera {
 			panel.AddLabel("Show Debug Info", 20, 145);
 
 			//Add current value display
-			AddCurrentValues();
+			AddCurrentValues(null); //null for Unity Input Manager
+			foreach(var dev in parent.GetDevices()) {
+				AddCurrentValues(dev);
+			}
 
 			//Add inputs
 			foreach(JoystickInputDef input in parent.GetInputs()) {
@@ -78,12 +81,19 @@ namespace JoystickCamera {
 		/// </summary>
 		/// <remarks>This is helpful to find which axis maps to which physical
 		/// input on the joystick.</remarks>
-		protected void AddCurrentValues() {
-			UIHelperBase groupV = helper.AddGroup("Current Input Values");
+		protected void AddCurrentValues(HidDeviceHandler device) {
+			var name = "Unity Input Manager";
+			var axes = JoystickInputDef.axisNames;
+			if(device != null) {
+				name = device.Name;
+				axes = device.GetAxes().Keys.ToArray();
+			}
+
+			UIHelperBase groupV = helper.AddGroup("Current Input Values: " + name);
 			var groupRoot = ((groupV as UIHelper).self as UIComponent);
 			int x = 0, y = 0;
 			UIPanelWrapper panel = null;
-			foreach(string axis in JoystickInputDef.axisNames) {
+			foreach(string axis in axes) {
 				if(axis == "None") continue;
 
 				if(x == 0) {
@@ -94,7 +104,7 @@ namespace JoystickCamera {
 				}
 				panel.AddLabel(axis, x, 0);
 				var slider = panel.AddSlider(axis + "_curval",
-					x: x, y: 15, value: 0, min: -100, max: 100, step: 1);
+					x: x, y: 15, value: 0, min: -255, max: 255, step: 1);
 				//y += 25;
 				x += 300;
 				if(x >= 600) {
@@ -103,9 +113,17 @@ namespace JoystickCamera {
 				}
 
 				slider.isInteractive = false;
-				slider.OnUpdate += () => {
-					slider.value = Input.GetAxis(axis) * 100;
-				};
+				if(device == null) {
+					slider.OnUpdate += () => {
+						slider.value = Input.GetAxis(axis) * 100;
+					};
+				}
+				else {
+					slider.OnUpdate += () => {
+						device.Update();
+						slider.value = (float)(device.GetAxes()[axis]);
+					};
+				}
 			}
 		}
 
