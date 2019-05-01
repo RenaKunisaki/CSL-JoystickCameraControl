@@ -107,6 +107,8 @@ namespace JoystickCamera {
 			}
 		};
 
+		public HidDeviceHandler device; //device to use, or null for Unity's handling
+		public string axisName; //axis name for raw devices
 		public Axis axis; //the axis to use for input
 		public float speed; //how fast the camera moves
 		public float minSpeed = 1; //for settings UI, minimum value for speed slider
@@ -120,7 +122,12 @@ namespace JoystickCamera {
 		public Output output; //the output variable to control
 
 		public string Name => OutputName[(int)output];
-		public string AxisName => axisNames[(int)axis];
+		public string AxisName {
+			get {
+				if(this.device != null) return this.axisName;
+				else return axisNames[(int)this.axis];
+			}
+		}
 
 		public JoystickInputDef() { }
 
@@ -132,9 +139,12 @@ namespace JoystickCamera {
 		/// <param name="speed">How fast the camera will move.</param>
 		/// <param name="sign">Either -1 to invert the input, or 1 to not invert.</param>
 		/// <param name="deadZone">Ignore inputs less than this magnitude.</param>
+		/// <param name="offset">Offset added to input (before deadZone).</param>
+		/// <param name="smoothing">Whether to use Unity's smoothing.</param>
 		/// <param name="modifiers">Modifier keys.</param>
-		public JoystickInputDef(Axis axis, Output output, float speed = 100,
-		float sign = 1, float deadZone = 0, float offset = 0, bool smoothing = true,
+		public JoystickInputDef(Axis axis, Output output,
+		float speed = 100, float sign = 1, float deadZone = 0, float offset = 0,
+		bool smoothing = true,
 		Modifier[] modifiers = null) {
 			this.axis = axis;
 			this.output = output;
@@ -143,6 +153,29 @@ namespace JoystickCamera {
 			this.deadZone = deadZone;
 			this.offset = offset;
 			this.smoothing = smoothing;
+			if(modifiers != null) {
+				foreach(var mod in modifiers) {
+					this.modifiers.Add(mod);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="T:JoystickCamera.JoystickInputDef"/> class.
+		/// </summary>
+		/// <param name="device">Device to use.</param>
+		/// <param name="axis">Axis name in device.</param>
+		public JoystickInputDef(HidDeviceHandler device, string axis, Output output,
+		float speed = 100, float sign = 1, float deadZone = 0, float offset = 0,
+		Modifier[] modifiers = null) {
+			this.device = device;
+			this.axisName = axis;
+			this.output = output;
+			this.speed = speed;
+			this.sign = sign;
+			this.deadZone = deadZone;
+			this.offset = offset;
+			this.smoothing = false;
 			if(modifiers != null) {
 				foreach(var mod in modifiers) {
 					this.modifiers.Add(mod);
@@ -178,8 +211,14 @@ namespace JoystickCamera {
 		/// <remarks>If the modifier conditions aren't satisfied, returns 0.</remarks>
 		public float Read(Dictionary<ModifierButton, bool> modifiers) {
 			if(!CheckModifiers(modifiers)) return 0;
-			string axisName = axisNames[(int)this.axis];
-			float val = smoothing ? Input.GetAxis(axisName) : Input.GetAxisRaw(axisName);
+			float val = 0;
+			if(this.device == null) { //use Unity
+				string name = axisNames[(int)this.axis];
+				val = smoothing ? Input.GetAxis(name) : Input.GetAxisRaw(name);
+			}
+			else {
+				val = (float)this.device.GetAxes()[this.axisName];
+			}
 			val += offset;
 			if(val > -deadZone && val < deadZone) val = 0;
 			return val * speed * sign;

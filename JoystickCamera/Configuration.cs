@@ -19,6 +19,7 @@ namespace JoystickCamera {
 		public class InputDef {
 			public string output;
 			public string axis;
+			public string device;
 			public float speed;
 			public float sign;
 			public float deadZone;
@@ -37,25 +38,39 @@ namespace JoystickCamera {
 		/// </summary>
 		/// <returns>The inputs.</returns>
 		/// <remarks>Ignores inputs with invalid settings.</remarks>
-		public List<JoystickInputDef> GetInputs() {
+		public List<JoystickInputDef> GetInputs(JoystickCamera parent) {
 			var result = new List<JoystickInputDef>(inputs.Count);
 			foreach(var input in inputs) {
+				JoystickInputDef inputDef;
+				HidDeviceHandler device = null;
+
 				int outputIdx = Array.IndexOf(JoystickInputDef.OutputName, input.output);
 				if(outputIdx < 0) {
 					Log($"Invalid output '{input.output}'");
 					continue;
 				}
 
-				int axisIdx = Array.IndexOf(JoystickInputDef.axisNames, input.axis);
-				if(axisIdx < 0) {
-					Log($"Invalid axis '{input.axis}'");
-					continue;
+				if(input.device != "") {
+					device = parent.GetDevice(input.device);
+					if(device == null) {
+						Log($"Device not found: '{input.device}'");
+						continue;
+					}
+					inputDef = new JoystickInputDef(device, input.axis,
+						(JoystickInputDef.Output)outputIdx,
+						input.speed, input.sign, input.deadZone, input.offset);
 				}
-
-				var inputDef = new JoystickInputDef(
-					(JoystickInputDef.Axis)axisIdx,
-					(JoystickInputDef.Output)outputIdx,
-					input.speed, input.sign, input.deadZone, input.offset, input.smoothing);
+				else {
+					int axisIdx = Array.IndexOf(JoystickInputDef.axisNames, input.axis);
+					if(axisIdx < 0) {
+						Log($"Invalid axis '{input.axis}'");
+						continue;
+					}
+					inputDef = new JoystickInputDef(
+						(JoystickInputDef.Axis)axisIdx,
+						(JoystickInputDef.Output)outputIdx,
+						input.speed, input.sign, input.deadZone, input.offset, input.smoothing);
+				}
 
 				foreach(var mod in input.modifiers) {
 					int btnIdx = Array.IndexOf(JoystickInputDef.modifierButtonName, mod.button);
@@ -89,6 +104,7 @@ namespace JoystickCamera {
 			foreach(var input in inputs) {
 				var item = new InputDef {
 					output = input.Name,
+					device = (input.device != null) ? input.device.Name : "",
 					axis = input.AxisName,
 					speed = input.speed,
 					sign = input.sign,

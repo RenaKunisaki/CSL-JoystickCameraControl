@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using HidSharp;
 using ICities;
 using UnityEngine;
 using static JoystickCamera.JoystickInputDef;
@@ -11,6 +13,7 @@ namespace JoystickCamera {
 		public string Description => "Use a joystick to control the camera.";
 		public readonly float PI_OVER_180 = Mathf.PI / 180f;
 		protected List<JoystickInputDef> inputs;
+		protected HidDeviceHandler[] rawDevices;
 		protected SettingsPanel settingsPanel;
 		protected DebugCameraDisplay debugDisplay;
 		public bool enableDebugDisplay = false;
@@ -25,6 +28,15 @@ namespace JoystickCamera {
 			//But, that mode isn't configurable, and has some issues
 			//(eg I can zoom out but not in).
 
+			//Get available devices
+			try {
+				rawDevices = HidDeviceHandler.GetDevices();
+			}
+			catch(Exception ex) {
+				Log($"Error enumerating HID devices: {ex}");
+				rawDevices = new HidDeviceHandler[0]; //avoid crashing later
+			}
+
 			inputs = new List<JoystickInputDef>();
 			try {
 				LoadConfig();
@@ -38,6 +50,16 @@ namespace JoystickCamera {
 				Log($"Error loading config file: {ex}");
 				AddDefaultInputs();
 			}
+		}
+
+		//debug
+		public bool DidMoveWithMouse { get => didMoveWithMouse; }
+
+		public HidDeviceHandler GetDevice(string name) {
+			foreach(var device in rawDevices) {
+				if(device != null && device.Name == name) return device;
+			}
+			return null;
 		}
 
 		/// <summary>
@@ -57,7 +79,7 @@ namespace JoystickCamera {
 		public void LoadConfig() {
 			Log("Loading config...");
 			var data = (new Configuration()).Load();
-			this.inputs = data.GetInputs();
+			this.inputs = data.GetInputs(this);
 			Log("Loaded config.");
 		}
 
@@ -175,12 +197,14 @@ namespace JoystickCamera {
 		public override void OnCreated(IThreading threading) {
 			base.OnCreated(threading);
 			Log("Created");
-			int numSticks = 0;
+
+			//this isn't really needed...
+			/* int numSticks = 0;
 			foreach(string name in Input.GetJoystickNames()) {
 				Log($"Joystick {numSticks}: {name}");
 				numSticks++;
 			}
-			Log($"Found {numSticks} joysticks");
+			Log($"Found {numSticks} joysticks"); */
 		}
 
 		/// <summary>
@@ -258,7 +282,7 @@ namespace JoystickCamera {
 			if(enableDebugDisplay) {
 				if(this.debugDisplay == null) {
 					Log("Creating debug display");
-					this.debugDisplay = new DebugCameraDisplay();
+					this.debugDisplay = new DebugCameraDisplay(this);
 				}
 				this.debugDisplay.Update();
 			}
@@ -268,6 +292,10 @@ namespace JoystickCamera {
 					this.debugDisplay.Remove();
 				}
 				this.debugDisplay = null;
+			}
+
+			foreach(var device in rawDevices) {
+				device.Update();
 			}
 
 			float t = realTimeDelta * 60; //should be ~1/60 of a second

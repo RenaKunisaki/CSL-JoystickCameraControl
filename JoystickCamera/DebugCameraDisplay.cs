@@ -8,10 +8,12 @@ namespace JoystickCamera {
 	/// Displays debug info about camera state in-game.
 	/// </summary>
 	public class DebugCameraDisplay {
+		protected JoystickCamera parent;
 		protected UIPanelWrapper panel;
 		protected Dictionary<string, UICustomLabel> labels;
 
-		public DebugCameraDisplay() {
+		public DebugCameraDisplay(JoystickCamera parent) {
+			this.parent = parent;
 			UIView view = GameObject.FindObjectOfType<UIView>();
 			UIPanel p = (UIPanel)view.AddUIComponent(typeof(UIPanel));
 			this.panel = new UIPanelWrapper(p, "CameraDebug", 256, 8, 320, 256);
@@ -49,6 +51,7 @@ namespace JoystickCamera {
 				{ "size",    panel.AddLabel("",  80,  98) },
 				{ "tsize",   panel.AddLabel("", 160,  98) },
 				{ "target",  panel.AddLabel("",   0, 112) },
+				{ "moving",  panel.AddLabel("",   0, 126) },
 			};
 		}
 
@@ -113,8 +116,17 @@ namespace JoystickCamera {
 			};
 
 			foreach(KeyValuePair<string, UICustomLabel> item in this.labels) {
-				if(item.Key == "target") item.Value.text = $"Target: {target}";
-				else item.Value.text = values[item.Key].ToString("###0.000");
+				switch(item.Key) {
+					case "target":
+						item.Value.text = $"Target: {target}";
+						break;
+					case "moving":
+						item.Value.text = parent.DidMoveWithMouse ? "moving" : "";
+						break;
+					default:
+						item.Value.text = values[item.Key].ToString("###0.000");
+						break;
+				}
 			}
 		}
 	}
