@@ -80,16 +80,22 @@ namespace JoystickCamera {
 			UIHelperBase groupV = helper.AddGroup("Current Input Values");
 			var groupRoot = ((groupV as UIHelper).self as UIComponent);
 			int x = 0, y = 0;
+			UIPanelWrapper panel = null;
 			foreach(string axis in JoystickInputDef.axisNames) {
 				if(axis == "None") continue;
 
-				var panel = this.AddPanel(groupRoot, "display_" + axis, x, y, 250, 30);
-				panel.AddLabel(axis, 0, 0);
+				if(x == 0) {
+					//Panels take up full width and auto align height,
+					//so to do two columns we need to pack them both
+					//into a single panel.
+					panel = this.AddPanel(groupRoot, "display_" + axis, 0, y, 600, 30);
+				}
+				panel.AddLabel(axis, x, 0);
 				var slider = panel.AddSlider(axis + "_curval",
-					x: 220, y: 0, value: 0, min: -100, max: 100, step: 1);
+					x: x, y: 15, value: 0, min: -100, max: 100, step: 1);
 				//y += 25;
-				x += 250;
-				if(x >= 500) {
+				x += 300;
+				if(x >= 600) {
 					x = 0;
 					y += 25;
 				}

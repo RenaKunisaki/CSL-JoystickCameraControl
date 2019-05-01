@@ -52,7 +52,7 @@ namespace JoystickCamera {
 				{ "tsize",   panel.AddLabel("", 160,  98) },
 				{ "target",  panel.AddLabel("",   0, 112) },
 				{ "moving",  panel.AddLabel("",   0, 126) },
-				{ "input",   panel.AddLabel("",   0, 140) },
+				//{ "input",   panel.AddLabel("",   0, 140) },
 			};
 		}
 
@@ -130,7 +130,7 @@ namespace JoystickCamera {
 							var y = inputs[1].lastValue.ToString("###0.00");
 							var px = inputs[0].prevValue.ToString("###0.00");
 							var py = inputs[1].prevValue.ToString("###0.00");
-							JoystickCamera.Log($"In {x} {y} p {px} {py}");
+							//JoystickCamera.Log($"In {x} {y} p {px} {py}");
 							item.Value.text = $"Input {x}\t{y}\nPrev {px}\t{py}";
 							break;
 						}
