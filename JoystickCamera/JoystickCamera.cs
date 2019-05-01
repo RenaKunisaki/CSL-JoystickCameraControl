@@ -62,6 +62,10 @@ namespace JoystickCamera {
 			return null;
 		}
 
+		public List<HidDeviceHandler> GetDevices() {
+			return new List<HidDeviceHandler>(rawDevices);
+		}
+
 		/// <summary>
 		/// Saves the config.
 		/// </summary>

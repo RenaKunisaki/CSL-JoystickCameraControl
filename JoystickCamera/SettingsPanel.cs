@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using ColossalFramework.UI;
 using ICities;
 using UnityEngine;
+using System.Linq;
 
 namespace JoystickCamera {
 	/// <summary>
@@ -123,6 +125,11 @@ namespace JoystickCamera {
 			return new UIPanelWrapper(panel, name, x, y, width, height);
 		}
 
+		protected string[] GetAxisNames(HidDeviceHandler device) {
+			if(device == null) return JoystickInputDef.axisNames;
+			return device.GetAxes().Keys.ToArray();
+		}
+
 		/// <summary>
 		/// Add the widgets for an input.
 		/// </summary>
@@ -136,10 +143,41 @@ namespace JoystickCamera {
 			UIComponent root = (UIComponent)groupAsHelper.self;
 			UIPanelWrapper panel = AddPanel(root, "InputPanel", 0, 0, 600, 100);
 
+			var devices = parent.GetDevices();
+			HidDeviceHandler device = null;
+			var devNames = new List<string>(devices.Count + 1) {
+				"Unity Input Manager"
+			};
+			int devIdx = -1;
+			for(int i = 0; i < devices.Count; i++) {
+				devNames.Add(devices[i].Name);
+				if(devices[i] == input.device) {
+					devIdx = i;
+					device = devices[i];
+					//keep going, we need the names
+				}
+			}
+
+			UIDropDown ddInput = null;
+
+			//Add device dropdown.
+			panel.AddLabel("Device:", 0, 5);
+			UIDropDown ddDevice = panel.AddDropdown(
+				name: "device", x: 70, y: 0, items: devNames.ToArray(),
+				tooltip: "Which input device to use.");
+			ddDevice.selectedIndex = devIdx + 1;
+			ddDevice.eventSelectedIndexChanged += (component, value) => {
+				if(value == 0) input.device = null;
+				else input.device = devices[value - 1];
+				ddInput.selectedIndex = 0;
+				ddInput.items = GetAxisNames(input.device);
+				parent.SaveConfig();
+			};
+
 			//Add input dropdown.
-			panel.AddLabel("Input Axis:", 0, 5);
-			UIDropDown ddInput = panel.AddDropdown(
-				name: "input", x: 90, y: 0, items: JoystickInputDef.axisNames,
+			panel.AddLabel("Input:", 300, 5);
+			ddInput = panel.AddDropdown(
+				name: "input", x: 350, y: 0, items: GetAxisNames(device),
 				tooltip: "Which input axis to use.");
 			ddInput.selectedIndex = (int)input.axis;
 			ddInput.eventSelectedIndexChanged += (component, value) => {
@@ -148,9 +186,9 @@ namespace JoystickCamera {
 			};
 
 			//Add output dropdown.
-			panel.AddLabel("Action:", 300, 5);
+			panel.AddLabel("Action:", 0, 30);
 			UIDropDown ddOutput = panel.AddDropdown(
-				name: "output", x: 370, y: 0, items: JoystickInputDef.OutputName,
+				name: "output", x: 70, y: 30, items: JoystickInputDef.OutputName,
 				tooltip: "What this axis should do.");
 			ddOutput.selectedIndex = (int)input.output;
 			ddOutput.eventSelectedIndexChanged += (component, value) => {
@@ -159,8 +197,8 @@ namespace JoystickCamera {
 			};
 
 			//Add speed slider.
-			panel.AddLabel("Movement Speed:", 0, 30);
-			panel.AddSlider(name: "speed", x: 150, y: 30,
+			panel.AddLabel("Movement Speed:", 300, 30);
+			panel.AddSlider(name: "speed", x: 450, y: 30,
 				value: input.speed, min: input.minSpeed,
 				max: input.maxSpeed, step: input.speedStep,
 				tooltip: "How fast the camera should move.")
@@ -169,27 +207,18 @@ namespace JoystickCamera {
 					parent.SaveConfig();
 				};
 
-			//Add invert checkbox.
-			panel.AddCheckbox("invert", 380, 30, input.sign < 0,
-			"Move in opposite direction.")
-			.eventClick += (component, eventParam) => {
-				input.sign = ((UICustomCheckbox)component).isChecked ? -1 : 1;
-				parent.SaveConfig();
-			};
-			panel.AddLabel("Invert", 400, 30);
-
-			//Add smoothing checkbox.
-			panel.AddCheckbox("smoothing", 465, 30, input.smoothing,
-			"Use Unity's input smoothing.")
-			.eventClick += (component, eventParam) => {
-				input.smoothing = ((UICustomCheckbox)component).isChecked;
-				parent.SaveConfig();
-			};
-			panel.AddLabel("Smoothing", 485, 30);
+			//Add offset slider.
+			panel.AddLabel("Offset:", 385, 60);
+			panel.AddSlider(name: "offset", x: 450, y: 60, value: input.offset * 100,
+				min: -100, max: 100, step: 1, tooltip: "Offset added to input.")
+				.eventValueChanged += (component, value) => {
+					input.offset = value / 100;
+					parent.SaveConfig();
+				};
 
 			//Add deadzone slider.
-			panel.AddLabel("Dead Zone:", 0, 60);
-			panel.AddSlider(name: "deadzone", x: 150, y: 60,
+			panel.AddLabel("Dead Zone:", 350, 90);
+			panel.AddSlider(name: "deadzone", x: 450, y: 90,
 				value: input.deadZone * 100, min: 0, max: 100, step: 1,
 				tooltip: "Ignore movements less than this magnitude.")
 				.eventValueChanged += (component, value) => {
@@ -197,14 +226,32 @@ namespace JoystickCamera {
 					parent.SaveConfig();
 				};
 
-			//Add offset slider.
-			panel.AddLabel("Offset:", 380, 60);
-			panel.AddSlider(name: "offset", x: 450, y: 60, value: input.offset * 100,
-				min: -100, max: 100, step: 1, tooltip: "Offset added to input.")
-				.eventValueChanged += (component, value) => {
-					input.offset = value / 100;
-					parent.SaveConfig();
-				};
+			//Add invert checkbox.
+			panel.AddCheckbox("invert", 0, 60, input.sign < 0,
+			"Move in opposite direction.")
+			.eventClick += (component, eventParam) => {
+				input.sign = ((UICustomCheckbox)component).isChecked ? -1 : 1;
+				parent.SaveConfig();
+			};
+			panel.AddLabel("Invert", 20, 60);
+
+			//Add smoothing checkbox.
+			panel.AddCheckbox("smoothing", 85, 60, input.smoothing,
+			"Use Unity's input smoothing.")
+			.eventClick += (component, eventParam) => {
+				input.smoothing = ((UICustomCheckbox)component).isChecked;
+				parent.SaveConfig();
+			};
+			panel.AddLabel("Smoothing", 105, 60);
+
+			//Add relative checkbox.
+			panel.AddCheckbox("relative", 200, 60, input.relative,
+			"Use relative input values.")
+			.eventClick += (component, eventParam) => {
+				input.relative = ((UICustomCheckbox)component).isChecked;
+				parent.SaveConfig();
+			};
+			panel.AddLabel("Relative", 220, 60);
 
 			//Add delete button.
 			UIButton btnDelete = panel.AddButton("Delete Input", 575, 0, 110, 20,
@@ -231,7 +278,7 @@ namespace JoystickCamera {
 			};
 
 			//Add modifiers.
-			int y = 105;
+			int y = 120;
 			foreach(var mod in input.modifiers) {
 				AddModifierWidgets(input, mod, panel, y);
 				y += 25;
