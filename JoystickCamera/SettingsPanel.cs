@@ -197,9 +197,11 @@ namespace JoystickCamera {
 			ddInput = panel.AddDropdown(
 				name: "input", x: 350, y: 0, items: GetAxisNames(device),
 				tooltip: "Which input axis to use.");
-			ddInput.selectedIndex = (int)input.axis;
+			if(input.device == null) ddInput.selectedIndex = (int)input.axis;
+			else ddInput.selectedIndex = Array.IndexOf(GetAxisNames(device), input.axisName);
 			ddInput.eventSelectedIndexChanged += (component, value) => {
-				input.axis = (JoystickInputDef.Axis)value;
+				if(input.device == null) input.axis = (JoystickInputDef.Axis)value;
+				else input.axisName = GetAxisNames(device)[value];
 				parent.SaveConfig();
 			};
 
@@ -248,7 +250,10 @@ namespace JoystickCamera {
 			panel.AddCheckbox("invert", 0, 60, input.sign < 0,
 			"Move in opposite direction.")
 			.eventClick += (component, eventParam) => {
-				input.sign = ((UICustomCheckbox)component).isChecked ? -1 : 1;
+				//invert checkbox logic because isChecked updates AFTER
+				//this callback, even though the callback that handles
+				//that is added before this one. WTF?
+				input.sign = !((UICustomCheckbox)component).isChecked ? -1 : 1;
 				parent.SaveConfig();
 			};
 			panel.AddLabel("Invert", 20, 60);
@@ -257,7 +262,7 @@ namespace JoystickCamera {
 			panel.AddCheckbox("smoothing", 85, 60, input.smoothing,
 			"Use Unity's input smoothing.")
 			.eventClick += (component, eventParam) => {
-				input.smoothing = ((UICustomCheckbox)component).isChecked;
+				input.smoothing = !((UICustomCheckbox)component).isChecked;
 				parent.SaveConfig();
 			};
 			panel.AddLabel("Smoothing", 105, 60);
@@ -266,7 +271,7 @@ namespace JoystickCamera {
 			panel.AddCheckbox("relative", 200, 60, input.relative,
 			"Use relative input values.")
 			.eventClick += (component, eventParam) => {
-				input.relative = ((UICustomCheckbox)component).isChecked;
+				input.relative = !((UICustomCheckbox)component).isChecked;
 				parent.SaveConfig();
 			};
 			panel.AddLabel("Relative", 220, 60);
