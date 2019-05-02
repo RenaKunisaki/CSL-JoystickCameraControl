@@ -97,6 +97,8 @@ namespace JoystickCamera {
 		protected static bool IsSupportedUsage(Usage usage) {
 			if(usage == Usage.GenericDesktopMouse) return true;
 			if(usage == Usage.GenericDesktopJoystick) return true;
+			if(usage == Usage.GenericDesktopGamepad) return true;
+			if(usage == Usage.GenericDesktopMultiaxisController) return true;
 			//XXX more device types?
 			return false;
 		}
