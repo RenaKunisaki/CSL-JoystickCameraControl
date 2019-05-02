@@ -30,11 +30,7 @@ namespace JoystickCamera {
 			var panel = this.AddPanel(groupRoot, "general", 0, 0, 600, 160);
 			panel.AddLabel(
 				"· Up/Down movement is usually ignored by the game,\n" +
-				"   or converted into forward/backward movement.\n" +
-				"· Up/Down rotation can confuse the camera about which\n" +
-				"   direction is forward; probably you want Zoom instead.\n" +
-				"   To fix it, turn back the other way or do a full circle,\n" +
-				"   or use the reset button below.", 0, 0);
+				"   or converted into forward/backward movement.", 0, 0);
 
 			//Add New Input button
 			UIButton btnAdd = panel.AddButton("Add New Input", 0, 110, 130, 30,
