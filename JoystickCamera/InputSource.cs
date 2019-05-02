@@ -9,7 +9,7 @@ namespace JoystickCamera {
 
 		public void SetValue(float value) {
 			prevValue = this.value;
-			this.smoothValue = Mathf.MoveTowards(value, prevValue, Time.deltaTime);
+			this.smoothValue = Mathf.MoveTowards(prevValue, value, Time.deltaTime);
 			this.value = value;
 		}
 
