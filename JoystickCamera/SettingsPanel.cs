@@ -27,20 +27,20 @@ namespace JoystickCamera {
 			//Add notes
 			UIHelperBase groupG = helper.AddGroup("Note:");
 			var groupRoot = ((groupG as UIHelper).self as UIComponent);
-			var panel = this.AddPanel(groupRoot, "general", 0, 0, 600, 160);
+			var panel = this.AddPanel(groupRoot, "general", 0, 0, 600, 90);
 			panel.AddLabel(
 				"· Up/Down movement is usually ignored by the game,\n" +
 				"   or converted into forward/backward movement.", 0, 0);
 
 			//Add New Input button
-			UIButton btnAdd = panel.AddButton("Add New Input", 0, 50, 130, 30,
+			UIButton btnAdd = panel.AddButton("Add New Input", 0, 40, 130, 30,
 				"Add an input.");
 			btnAdd.eventClicked += (component, eventParam) => {
 				AddInput(parent.AddInput());
 			};
 
 			//Add Reset Camera button
-			UIButton btnReset = panel.AddButton("Reset Camera", 140, 50, 130, 30,
+			UIButton btnReset = panel.AddButton("Reset Camera", 140, 40, 130, 30,
 				"Reset camera to a sane state.");
 			btnAdd.eventClicked += (component, eventParam) => {
 				GameObject gameObject = GameObject.FindGameObjectWithTag("MainCamera");
@@ -50,14 +50,14 @@ namespace JoystickCamera {
 			};
 
 			//Add debug toggle
-			panel.AddCheckbox("debug", 0, 85, parent.enableDebugDisplay,
+			panel.AddCheckbox("debug", 0, 75, parent.enableDebugDisplay,
 			"Show debug info in-game.")
 			.eventClick += (component, eventParam) => {
 				//wtf
 				parent.enableDebugDisplay = !((UICustomCheckbox)component).isChecked;
 				//parent.SaveConfig();
 			};
-			panel.AddLabel("Show Debug Info", 20, 85);
+			panel.AddLabel("Show Debug Info", 20, 75);
 
 			//Add current value display
 			foreach(var src in parent.GetInputSources()) {
