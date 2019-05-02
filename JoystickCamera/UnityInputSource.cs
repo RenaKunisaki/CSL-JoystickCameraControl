@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace JoystickCamera {
 	/// <summary>
@@ -25,7 +26,18 @@ namespace JoystickCamera {
 			"Button 6", "Button 7", "Button 8", "Button 9", "Button 10",
 			"Button 11", "Button 12", "Button 13", "Button 14", "Button 15",
 			"Button 16", "Button 17", "Button 18", "Button 19", "Button 20",
+		};
 
+		protected static readonly Dictionary<string, float> AxisScales = new Dictionary<string, float> {
+			{ "None", 0 },
+			{ "Horizontal", 100},
+			{ "Vertical", 100},
+			{ "RotationHorizontalCamera", 100},
+			{ "RotationVerticalCamera", 100},
+			{ "ZoomCamera", 100},
+			{ "Mouse X", 1},
+			{ "Mouse Y", 1},
+			{ "Mouse ScrollWheel", 1},
 		};
 
 		public UnityInputSource() {
@@ -38,7 +50,7 @@ namespace JoystickCamera {
 		public override void Update() {
 			//Read axes
 			foreach(var axis in this.axes) {
-				float val = Input.GetAxisRaw(axis.Key);
+				float val = Input.GetAxisRaw(axis.Key) * AxisScales[axis.Key];
 				axis.Value.SetValue(val);
 			}
 		}
