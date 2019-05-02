@@ -51,7 +51,7 @@ namespace JoystickCamera {
 					continue;
 				}
 
-				if(input.device != "") {
+				if(input.device != null && input.device.Length > 0) {
 					device = parent.GetDevice(input.device);
 					if(device == null) {
 						Log($"Device not found: '{input.device}'");
