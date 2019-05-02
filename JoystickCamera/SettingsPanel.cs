@@ -84,6 +84,8 @@ namespace JoystickCamera {
 			var groupRoot = ((groupV as UIHelper).self as UIComponent);
 			int x = 0, y = 0;
 			UIPanelWrapper panel = null;
+			bool isFirst = true;
+
 			foreach(string axis in axisNames) {
 				if(axis == "None") continue;
 
@@ -104,8 +106,14 @@ namespace JoystickCamera {
 				}
 
 				slider.isInteractive = false;
-				slider.OnUpdate += () => {
-					source.Update();
+				if(isFirst) {
+					slider.OnUpdate += () => {
+						source.Update();
+						slider.value = axes[axis].GetValue();
+					};
+					isFirst = false;
+				}
+				else slider.OnUpdate += () => {
 					slider.value = axes[axis].GetValue();
 				};
 			}
