@@ -162,6 +162,7 @@ namespace JoystickCamera {
 							foreach(var usg in inputReport.GetAllUsages()) {
 								Log($"Input report: {(Usage)usg}");
 								//If this is a button or an axis, add it.
+								//XXX get info such as the neutral value, range, etc.
 								if(usg >= (int)Usage.Button1
 								&& usg <= (int)Usage.Button31) {
 									buttons.Add(false);
@@ -220,6 +221,9 @@ namespace JoystickCamera {
 							buttons[(int)usage - (int)HidSharp.Reports.Usage.Button1] = (newLogVal > 0);
 						}
 						else if(usageNames.ContainsKey(usage)) {
+							if(this.usage == Usage.GenericDesktopJoystick) {
+								newLogVal -= 127; //XXX probably better way to do this
+							}
 							axes[usage].value = newLogVal;
 						}
 						//Log($"Input change: {usage}: {prevPhysVal} -> {newPhysVal}");
