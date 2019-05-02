@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using ColossalFramework.UI;
 using ICities;
 using UnityEngine;
-using System.Linq;
 
 namespace JoystickCamera {
 	/// <summary>
@@ -65,9 +64,8 @@ namespace JoystickCamera {
 			panel.AddLabel("Show Debug Info", 20, 145);
 
 			//Add current value display
-			AddCurrentValues(null); //null for Unity Input Manager
-			foreach(var dev in parent.GetDevices()) {
-				AddCurrentValues(dev);
+			foreach(var src in parent.GetInputSources()) {
+				AddCurrentValues(src);
 			}
 
 			//Add inputs
@@ -81,19 +79,16 @@ namespace JoystickCamera {
 		/// </summary>
 		/// <remarks>This is helpful to find which axis maps to which physical
 		/// input on the joystick.</remarks>
-		protected void AddCurrentValues(HidDeviceHandler device) {
-			var name = "Unity Input Manager";
-			var axes = JoystickInputDef.axisNames;
-			if(device != null) {
-				name = device.Name;
-				axes = device.GetAxes().Keys.ToArray();
-			}
+		protected void AddCurrentValues(InputSource source) {
+			var name = source.Name;
+			var axisNames = source.GetAxisNames();
+			var axes = source.GetAxes();
 
-			UIHelperBase groupV = helper.AddGroup("Current Input Values: " + name);
+			UIHelperBase groupV = helper.AddGroup($"Current Input Values: {source.Name}");
 			var groupRoot = ((groupV as UIHelper).self as UIComponent);
 			int x = 0, y = 0;
 			UIPanelWrapper panel = null;
-			foreach(string axis in axes) {
+			foreach(string axis in axisNames) {
 				if(axis == "None") continue;
 
 				if(x == 0) {
@@ -113,17 +108,10 @@ namespace JoystickCamera {
 				}
 
 				slider.isInteractive = false;
-				if(device == null) {
-					slider.OnUpdate += () => {
-						slider.value = Input.GetAxis(axis) * 100;
-					};
-				}
-				else {
-					slider.OnUpdate += () => {
-						device.Update();
-						slider.value = (float)(device.GetAxes()[axis]);
-					};
-				}
+				slider.OnUpdate += () => {
+					source.Update();
+					slider.value = axes[axis].GetValue();
+				};
 			}
 		}
 
@@ -143,11 +131,6 @@ namespace JoystickCamera {
 			return new UIPanelWrapper(panel, name, x, y, width, height);
 		}
 
-		protected string[] GetAxisNames(HidDeviceHandler device) {
-			if(device == null) return JoystickInputDef.axisNames;
-			return device.GetAxes().Keys.ToArray();
-		}
-
 		/// <summary>
 		/// Add the widgets for an input.
 		/// </summary>
@@ -161,21 +144,20 @@ namespace JoystickCamera {
 			UIComponent root = (UIComponent)groupAsHelper.self;
 			UIPanelWrapper panel = AddPanel(root, "InputPanel", 0, 0, 600, 100);
 
-			var devices = parent.GetDevices();
-			HidDeviceHandler device = null;
-			var devNames = new List<string>(devices.Count + 1) {
-				"Unity Input Manager"
-			};
+			var sources = parent.GetInputSources();
+			InputSource source = null;
+			var devNames = new List<string>(sources.Count);
 			int devIdx = -1;
-			for(int i = 0; i < devices.Count; i++) {
-				devNames.Add(devices[i].Name);
-				if(devices[i] == input.device) {
+			for(int i = 0; i < sources.Count; i++) {
+				devNames.Add(sources[i].Name);
+				if(sources[i] == input.inputSource) {
 					devIdx = i;
-					device = devices[i];
+					source = sources[i];
 					//keep going, we need the names
 				}
 			}
 
+			var axisNames = input.inputSource.GetAxisNames();
 			UIDropDown ddInput = null;
 
 			//Add device dropdown.
@@ -183,25 +165,22 @@ namespace JoystickCamera {
 			UIDropDown ddDevice = panel.AddDropdown(
 				name: "device", x: 70, y: 0, items: devNames.ToArray(),
 				tooltip: "Which input device to use.");
-			ddDevice.selectedIndex = devIdx + 1;
+			ddDevice.selectedIndex = devIdx;
 			ddDevice.eventSelectedIndexChanged += (component, value) => {
-				if(value == 0) input.device = null;
-				else input.device = devices[value - 1];
+				input.inputSource = sources[value];
 				ddInput.selectedIndex = 0;
-				ddInput.items = GetAxisNames(input.device);
+				ddInput.items = input.inputSource.GetAxisNames();
 				parent.SaveConfig();
 			};
 
 			//Add input dropdown.
 			panel.AddLabel("Input:", 300, 5);
 			ddInput = panel.AddDropdown(
-				name: "input", x: 350, y: 0, items: GetAxisNames(device),
+				name: "input", x: 350, y: 0, items: axisNames,
 				tooltip: "Which input axis to use.");
-			if(input.device == null) ddInput.selectedIndex = (int)input.axis;
-			else ddInput.selectedIndex = Array.IndexOf(GetAxisNames(device), input.axisName);
+			ddInput.selectedIndex = Array.IndexOf(axisNames, input.axis);
 			ddInput.eventSelectedIndexChanged += (component, value) => {
-				if(input.device == null) input.axis = (JoystickInputDef.Axis)value;
-				else input.axisName = GetAxisNames(device)[value];
+				input.axis = input.inputSource.GetAxisNames()[value];
 				parent.SaveConfig();
 			};
 

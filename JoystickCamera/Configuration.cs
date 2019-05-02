@@ -43,7 +43,6 @@ namespace JoystickCamera {
 			var result = new List<JoystickInputDef>(inputs.Count);
 			foreach(var input in inputs) {
 				JoystickInputDef inputDef;
-				HidDeviceHandler device = null;
 
 				int outputIdx = Array.IndexOf(JoystickInputDef.OutputName, input.output);
 				if(outputIdx < 0) {
@@ -51,28 +50,25 @@ namespace JoystickCamera {
 					continue;
 				}
 
-				if(input.device != null && input.device.Length > 0) {
-					device = parent.GetDevice(input.device);
+				InputSource device = parent.GetDefaultInputSource();
+				if(!string.IsNullOrEmpty(input.device)) {
+					device = parent.GetInputSource(input.device);
 					if(device == null) {
 						Log($"Device not found: '{input.device}'");
 						continue;
 					}
-					inputDef = new JoystickInputDef(device, input.axis,
-						(JoystickInputDef.Output)outputIdx,
-						input.speed, input.sign, input.deadZone, input.offset);
 				}
-				else {
-					int axisIdx = Array.IndexOf(JoystickInputDef.axisNames, input.axis);
-					if(axisIdx < 0) {
-						Log($"Invalid axis '{input.axis}'");
-						continue;
-					}
-					inputDef = new JoystickInputDef(
-						(JoystickInputDef.Axis)axisIdx,
-						(JoystickInputDef.Output)outputIdx,
-						input.speed, input.sign, input.deadZone, input.offset, input.smoothing);
-				}
-				inputDef.relative = input.relative;
+				inputDef = new JoystickInputDef {
+					inputSource = device,
+					axis = input.axis,
+					output = (JoystickInputDef.Output)outputIdx,
+					speed = input.speed,
+					sign = input.sign,
+					deadZone = input.deadZone,
+					offset = input.offset,
+					smoothing = input.smoothing,
+					relative = input.relative,
+				};
 
 				foreach(var mod in input.modifiers) {
 					int btnIdx = Array.IndexOf(JoystickInputDef.modifierButtonName, mod.button);
@@ -106,8 +102,8 @@ namespace JoystickCamera {
 			foreach(var input in inputs) {
 				var item = new InputDef {
 					output = input.Name,
-					device = (input.device != null) ? input.device.Name : "",
-					axis = input.AxisName,
+					device = input.inputSource.Name,
+					axis = input.axis,
 					speed = input.speed,
 					sign = input.sign,
 					deadZone = input.deadZone,

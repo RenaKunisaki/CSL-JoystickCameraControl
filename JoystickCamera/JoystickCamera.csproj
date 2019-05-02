@@ -58,6 +58,9 @@
     <Compile Include="DebugCameraDisplay.cs" />
     <Compile Include="JoystickCamera.cs" />
     <Compile Include="HidDeviceHandler.cs" />
+    <Compile Include="InputSource.cs" />
+    <Compile Include="UnityInputSource.cs" />
+    <Compile Include="HidInputSource.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

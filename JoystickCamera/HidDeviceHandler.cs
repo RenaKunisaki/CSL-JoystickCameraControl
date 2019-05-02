@@ -20,6 +20,7 @@ namespace JoystickCamera {
 		protected HidDeviceInputReceiver inputReceiver;
 		protected DeviceItemInputParser inputParser;
 		protected List<bool> buttons;
+		protected Usage usage;
 
 		public readonly Dictionary<Usage, string> usageNames = new Dictionary<Usage, string> {
 			{ Usage.GenericDesktopX, "X Axis" },
@@ -100,6 +101,14 @@ namespace JoystickCamera {
 			return false;
 		}
 
+		public string[] GetAxisNames() {
+			var names = new List<string>(axes.Count);
+			foreach(var axis in axes.Values) {
+				names.Add(axis.name);
+			}
+			return names.ToArray();
+		}
+
 		/// <summary>
 		/// Get the current axis states.
 		/// </summary>
@@ -110,6 +119,10 @@ namespace JoystickCamera {
 				result[axis.name] = axis.value;
 			}
 			return result;
+		}
+
+		public int GetButtonCount() {
+			return buttons.Count;
 		}
 
 		/// <summary>
@@ -125,7 +138,7 @@ namespace JoystickCamera {
 		/// </summary>
 		protected void Open() {
 			hidStream = device.Open();
-			//hidStream.ReadTimeout = 1000;
+			hidStream.ReadTimeout = 1000;
 			reportDescriptor = device.GetReportDescriptor();
 
 			foreach(var item in reportDescriptor.DeviceItems) {
@@ -135,6 +148,7 @@ namespace JoystickCamera {
 					|| us == Usage.GenericDesktopJoystick) {
 						//XXX more device types?
 						//Get the report descriptor info and read the descriptors
+						this.usage = us;
 						Log($"Opening device {us} {device.GetFriendlyName()}");
 						deviceItem = item;
 						inputReportBuffer = new byte[device.GetMaxInputReportLength()];
@@ -173,6 +187,14 @@ namespace JoystickCamera {
 				throw new IOException("Device disconnected");
 			}
 
+			if(this.usage == Usage.GenericDesktopMouse) {
+				//Mice only report relative movements, and only when actually moved.
+				//If we didn't get any report, then the movement is zero.
+				foreach(var axis in axes.Values) {
+					axis.value = 0;
+				}
+			}
+
 			// Periodically check if the receiver has any reports.
 			while(inputReceiver.TryRead(inputReportBuffer, 0, out Report report)) {
 				// Parse the report if possible.
@@ -187,10 +209,12 @@ namespace JoystickCamera {
 						//var newPhysVal = newVal.GetPhysicalValue();
 						var prevLogVal = prevVal.GetLogicalValue();
 						var newLogVal = newVal.GetLogicalValue();
+						//var prevLogVal = prevVal.GetScaledValue(-100.0, 100.0);
+						//var newLogVal = newVal.GetScaledValue(-100.0, 100.0);
 
 						//If this is a button or axis, update it.
 						if((int)usage >= (int)HidSharp.Reports.Usage.Button1
-						&& (int)usage <= (int)HidSharp.Reports.Usage.Button31) {
+ 						&& (int)usage <= (int)HidSharp.Reports.Usage.Button31) {
 							buttons[(int)usage - (int)HidSharp.Reports.Usage.Button1] = (newLogVal > 0);
 						}
 						else if(usageNames.ContainsKey(usage)) {

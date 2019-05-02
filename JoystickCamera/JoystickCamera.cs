@@ -13,7 +13,8 @@ namespace JoystickCamera {
 		public string Description => "Use a joystick to control the camera.";
 		public readonly float PI_OVER_180 = Mathf.PI / 180f;
 		protected List<JoystickInputDef> inputs;
-		protected HidDeviceHandler[] rawDevices;
+		protected List<InputSource> inputSources;
+		protected InputSource defaultInputSource;
 		protected SettingsPanel settingsPanel;
 		protected DebugCameraDisplay debugDisplay;
 		public bool enableDebugDisplay = false;
@@ -28,13 +29,17 @@ namespace JoystickCamera {
 			//But, that mode isn't configurable, and has some issues
 			//(eg I can zoom out but not in).
 
+			defaultInputSource = new UnityInputSource();
+			inputSources = new List<InputSource> { defaultInputSource };
+
 			//Get available devices
 			try {
-				rawDevices = HidDeviceHandler.GetDevices();
+				foreach(var device in HidDeviceHandler.GetDevices()) {
+					inputSources.Add(new HidInputSource(device));
+				}
 			}
 			catch(Exception ex) {
 				Log($"Error enumerating HID devices: {ex}");
-				rawDevices = new HidDeviceHandler[0]; //avoid crashing later
 			}
 
 			inputs = new List<JoystickInputDef>();
@@ -55,16 +60,22 @@ namespace JoystickCamera {
 		//debug
 		public bool DidMoveWithMouse { get => didMoveWithMouse; }
 
-		public HidDeviceHandler GetDevice(string name) {
-			foreach(var device in rawDevices) {
-				if(device != null && device.Name == name) return device;
+		public InputSource GetInputSource(string name) {
+			foreach(var source in inputSources) {
+				if(source != null && source.Name == name) return source;
 			}
 			return null;
 		}
 
-		public List<HidDeviceHandler> GetDevices() {
-			return new List<HidDeviceHandler>(rawDevices);
+		public List<InputSource> GetInputSources() {
+			return inputSources;
 		}
+
+		public InputSource GetDefaultInputSource() {
+			return defaultInputSource;
+		}
+
+		#region Config
 
 		/// <summary>
 		/// Saves the config.
@@ -113,50 +124,43 @@ namespace JoystickCamera {
 			inputs.Remove(input);
 		}
 
+		#endregion Config
+
+		#region Defaults
+
 		/// <summary>
 		/// Adds the default inputs, when no config file is available.
 		/// </summary>
 		protected void AddDefaultInputs() {
-			inputs.Add(new JoystickInputDef(
-				axis: JoystickInputDef.Axis.HORIZONTAL,
-				output: JoystickInputDef.Output.CAMERA_MOVE_X,
-				speed: 100,
-				modifiers: new Modifier[] {
+			inputs.Add(new JoystickInputDef {
+				axis = "Horizontal",
+				output = JoystickInputDef.Output.CAMERA_MOVE_X,
+				speed = 100,
+				modifiers = new List<Modifier> {
 					new Modifier(ModifierButton.SHIFT_ANY, ModifierCondition.NOT_HELD),
-				}
-			));
-			inputs.Add(new JoystickInputDef(
-				axis: JoystickInputDef.Axis.VERTICAL,
-				output: JoystickInputDef.Output.CAMERA_MOVE_Z,
-				speed: 100
-			));
-			inputs.Add(new JoystickInputDef(
-				axis: JoystickInputDef.Axis.ROTATION_HORIZONTAL_CAMERA,
-				output: JoystickInputDef.Output.CAMERA_TURN_X,
-				speed: 5
-			));
-			inputs.Add(new JoystickInputDef(
-				axis: JoystickInputDef.Axis.ROTATION_VERTICAL_CAMERA,
-				output: JoystickInputDef.Output.CAMERA_ZOOM,
-				speed: 5
-			));
-			/* inputs.Add(new JoystickInputDef(
-				axis: JoystickInputDef.Axis.HORIZONTAL,
-				output: JoystickInputDef.Output.CAMERA_MOVE_EW,
-				speed: 100,
-				modifiers: new Modifier[] {
-					new Modifier(ModifierButton.SHIFT_ANY, ModifierCondition.HELD),
-				}
-			));
-			inputs.Add(new JoystickInputDef(
-				axis: JoystickInputDef.Axis.VERTICAL,
-				output: JoystickInputDef.Output.CAMERA_MOVE_NS,
-				speed: 100,
-				modifiers: new Modifier[] {
-					new Modifier(ModifierButton.SHIFT_ANY, ModifierCondition.HELD),
-				}
-			)); */
+				},
+			});
+			inputs.Add(new JoystickInputDef {
+				axis = "Vertical",
+				output = JoystickInputDef.Output.CAMERA_MOVE_Z,
+				speed = 100,
+				modifiers = new List<Modifier> {
+					new Modifier(ModifierButton.SHIFT_ANY, ModifierCondition.NOT_HELD),
+				},
+			});
+			inputs.Add(new JoystickInputDef {
+				axis = "RotationHorizontalCamera",
+				output = JoystickInputDef.Output.CAMERA_TURN_X,
+				speed = 5,
+			});
+			inputs.Add(new JoystickInputDef {
+				axis = "RotationVerticalCamera",
+				output = JoystickInputDef.Output.CAMERA_ZOOM,
+				speed = 5,
+			});
 		}
+
+		#endregion Defaults
 
 		#region logging
 
@@ -282,74 +286,11 @@ namespace JoystickCamera {
 		public override void OnUpdate(float realTimeDelta, float simulationTimeDelta) {
 			GameObject gameObject = GameObject.FindGameObjectWithTag("MainCamera");
 			if(gameObject == null) return;
-
-			foreach(var device in rawDevices) {
-				try {
-					device.Update();
-				}
-				catch(IOException) {
-					//ignore, device probably was disconnected.
-					//best to just let the game keep running...
-				}
-			}
-
-			if(enableDebugDisplay) {
-				if(this.debugDisplay == null) {
-					Log("Creating debug display");
-					this.debugDisplay = new DebugCameraDisplay(this);
-				}
-				this.debugDisplay.Update();
-			}
-			else {
-				if(this.debugDisplay != null) {
-					Log("Removing debug display");
-					this.debugDisplay.Remove();
-				}
-				this.debugDisplay = null;
-			}
-
-			float t = realTimeDelta * 60; //should be ~1/60 of a second
-			Vector3 translateRelative = new Vector3(0, 0, 0); //screen relative movement
-			Vector3 translateWorld = new Vector3(0, 0, 0); //compass movement
-			Vector2 rotate = new Vector2(0, 0);
-			float zoom = 0;
-			var modifiers = GetModifiers();
-
-			//Read each input and assign the output to appropriate variable.
-			foreach(JoystickInputDef input in this.inputs) {
-				float v = input.Read(modifiers) * t;
-				switch(input.output) {
-					case JoystickInputDef.Output.CAMERA_MOVE_X:
-						translateRelative.x += v;
-						break;
-					case JoystickInputDef.Output.CAMERA_MOVE_Y:
-						translateRelative.y += v;
-						break;
-					case JoystickInputDef.Output.CAMERA_MOVE_Z:
-						translateRelative.z += v;
-						break;
-					case JoystickInputDef.Output.CAMERA_MOVE_NS:
-						translateWorld.x += v;
-						break;
-					case JoystickInputDef.Output.CAMERA_MOVE_EW:
-						translateWorld.z += v;
-						break;
-					case JoystickInputDef.Output.CAMERA_ZOOM:
-						zoom += v;
-						break;
-					case JoystickInputDef.Output.CAMERA_TURN_X:
-						rotate.x += v;
-						break;
-					case JoystickInputDef.Output.CAMERA_TURN_Y:
-						rotate.y += v;
-						break;
-					default:
-						Log($"[BUG] Missing case for output {input.output}");
-						break;
-				}
-			}
-
-			//Log($"T {translateRelative.x} {translateRelative.y} {translateRelative.z}");
+			UpdateInputSources();
+			UpdateDebugDisplay();
+			GetTransforms(realTimeDelta, out Vector3 translateRelative,
+				out Vector3 translateWorld, out Vector2 rotate, out float zoom,
+				out Dictionary<ModifierButton, bool> modifiers);
 
 			//Get camera objects and current position
 			CameraController cameraController = gameObject.GetComponent<CameraController>();
@@ -410,5 +351,81 @@ namespace JoystickCamera {
 		}
 
 		#endregion ThreadingExtensionBase
+
+		protected void UpdateInputSources() {
+			foreach(var source in inputSources) {
+				try {
+					source.Update();
+				}
+				catch(IOException) {
+					//ignore, device probably was disconnected.
+					//best to just let the game keep running...
+				}
+			}
+		}
+
+		protected void UpdateDebugDisplay() {
+			if(enableDebugDisplay) {
+				if(this.debugDisplay == null) {
+					Log("Creating debug display");
+					this.debugDisplay = new DebugCameraDisplay(this);
+				}
+				this.debugDisplay.Update();
+			}
+			else {
+				if(this.debugDisplay != null) {
+					Log("Removing debug display");
+					this.debugDisplay.Remove();
+				}
+				this.debugDisplay = null;
+			}
+		}
+
+		protected void GetTransforms(float realTimeDelta, out Vector3 translateRelative,
+		out Vector3 translateWorld, out Vector2 rotate, out float zoom,
+		out Dictionary<ModifierButton, bool> modifiers) {
+			float t = realTimeDelta * 60; //should be ~1/60 of a second
+			translateRelative = new Vector3(0, 0, 0); //screen relative movement
+			translateWorld = new Vector3(0, 0, 0); //compass movement
+			rotate = new Vector2(0, 0);
+			zoom = 0;
+			modifiers = GetModifiers();
+
+			//Read each input and assign the output to appropriate variable.
+			foreach(JoystickInputDef input in this.inputs) {
+				float v = input.Read(modifiers) * t;
+				switch(input.output) {
+					case JoystickInputDef.Output.CAMERA_MOVE_X:
+						translateRelative.x += v;
+						break;
+					case JoystickInputDef.Output.CAMERA_MOVE_Y:
+						translateRelative.y += v;
+						break;
+					case JoystickInputDef.Output.CAMERA_MOVE_Z:
+						translateRelative.z += v;
+						break;
+					case JoystickInputDef.Output.CAMERA_MOVE_NS:
+						translateWorld.x += v;
+						break;
+					case JoystickInputDef.Output.CAMERA_MOVE_EW:
+						translateWorld.z += v;
+						break;
+					case JoystickInputDef.Output.CAMERA_ZOOM:
+						zoom += v;
+						break;
+					case JoystickInputDef.Output.CAMERA_TURN_X:
+						rotate.x += v;
+						break;
+					case JoystickInputDef.Output.CAMERA_TURN_Y:
+						rotate.y += v;
+						break;
+					default:
+						Log($"[BUG] Missing case for output {input.output}");
+						break;
+				}
+			}
+
+			//Log($"T {translateRelative.x} {translateRelative.y} {translateRelative.z}");
+		}
 	}
 }
