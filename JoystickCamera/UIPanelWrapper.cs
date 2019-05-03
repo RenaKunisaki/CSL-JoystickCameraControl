@@ -46,6 +46,28 @@ namespace JoystickCamera {
 		}
 	}
 
+	public class UICustomTabStrip: UITabstrip {
+		protected int _numTabs = 0;
+		public UIButton AddTab(string caption, out UIPanelWrapper panel, string tooltip = null) {
+			UIButton tabButton = base.AddTab(caption);
+			tabButton.normalBgSprite = "SubBarButtonBase";
+			tabButton.disabledBgSprite = "SubBarButtonBaseDisabled";
+			tabButton.focusedBgSprite = "SubBarButtonBaseFocused";
+			tabButton.hoveredBgSprite = "SubBarButtonBaseHovered";
+			tabButton.pressedBgSprite = "SubBarButtonBasePressed";
+			tabButton.textPadding = new RectOffset(10, 10, 10, 10);
+			tabButton.autoSize = true;
+			if(tooltip != null) tabButton.tooltip = tooltip;
+			UIPanel _panel = this.tabContainer.components[this._numTabs] as UIPanel;
+			panel = new UIPanelWrapper(_panel, $"tabstrip_panel{_numTabs}", 0, 0,
+				//500, 500);
+				(int)this.tabContainer.parent.width, (int)this.tabContainer.parent.height);
+			this.selectedIndex = _numTabs; //or else things won't hide correctly
+			_numTabs++;
+			return tabButton;
+		}
+	}
+
 	/// <summary>
 	/// A wrapper for UIPanel that provides some helpful methods.
 	/// </summary>
@@ -289,6 +311,13 @@ namespace JoystickCamera {
 			return box;
 		}
 
+		public UICustomTabStrip AddTabStrip(string name, out UITabContainer container) {
+			var strip = panel.AddUIComponent<UICustomTabStrip>();
+			container = panel.AddUIComponent<UITabContainer>();
+			strip.tabPages = container;
+			return strip;
+		}
+
 		/// <summary>
 		/// Remove a widget by name.
 		/// </summary>
@@ -331,6 +360,17 @@ namespace JoystickCamera {
 			}
 			panel.RemoveUIComponent(component);
 			UnityEngine.Object.Destroy(component);
+		}
+
+		public Vector2 GetBounds() {
+			Vector2 bounds = new Vector2(0, 0);
+			foreach(var child in children) {
+				var x = child.relativePosition.x + child.width;
+				var y = child.relativePosition.y + child.height;
+				if(x > bounds.x) bounds.x = x;
+				if(y > bounds.y) bounds.y = y;
+			}
+			return bounds;
 		}
 	}
 }

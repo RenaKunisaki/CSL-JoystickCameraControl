@@ -19,7 +19,7 @@ namespace JoystickCamera {
 			"Mouse ScrollWheel",
 		};
 
-		public static readonly string[] buttonNames = {
+		public static readonly string[] buttonNames = { //XXX not used
 			"Mouse Button 1", "Mouse Button 2","Mouse Button 3", "Mouse Button 4",
 			"Mouse Button 5", "Mouse Button 6", "Mouse Button 7",
 			"Button 1", "Button 2", "Button 3", "Button 4", "Button 5",

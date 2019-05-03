@@ -25,24 +25,40 @@ namespace JoystickCamera {
 			this.root = ((helper as UIHelper).self as UIComponent);
 
 			//Add notes
-			UIHelperBase groupG = helper.AddGroup("Note:");
+			UIHelperBase groupG = helper.AddGroup(" ");
 			var groupRoot = ((groupG as UIHelper).self as UIComponent);
-			var panel = this.AddPanel(groupRoot, "general", 0, 0, 600, 90);
+			var panel = this.AddPanel(groupRoot, "general", 0, 0, 600, 2);
+
+			UICustomTabStrip tabStrip = panel.AddTabStrip("tabstrip",
+				out UITabContainer tabContainer);
+			tabStrip.relativePosition = new Vector3(0, -20, 0);
+			//tabContainer.backgroundSprite = "SubBarButtonBase";
+			/*
 			panel.AddLabel(
 				"· Up/Down movement is usually ignored by the game,\n" +
 				"   or converted into forward/backward movement.", 0, 0);
 
-			//Add New Input button
-			UIButton btnAdd = panel.AddButton("Add New Input", 0, 40, 130, 30,
-				"Add an input.");
-			btnAdd.eventClicked += (component, eventParam) => {
-				AddInput(parent.AddInput());
-			};
+			*/
+			//JoystickCamera.Log($"Panel size is {root.width} x {root.height}");
+			tabContainer.width = this.root.width;
+			tabContainer.height = this.root.height - 32;
+			tabContainer.relativePosition = new Vector3(0, 32, 0);
+			AddGeneralTab(tabStrip, tabContainer);
+			AddInputsTab(tabStrip, tabContainer);
+			AddCurrentInputsTab(tabStrip, tabContainer);
+
+
+			tabStrip.selectedIndex = 0;
+		}
+
+		protected void AddGeneralTab(UICustomTabStrip tabStrip, UITabContainer tabContainer) {
+			UIButton tabButton = tabStrip.AddTab("General",
+				out UIPanelWrapper tabPanel, "General settings");
 
 			//Add Reset Camera button
-			UIButton btnReset = panel.AddButton("Reset Camera", 140, 40, 130, 30,
+			UIButton btnReset = tabPanel.AddButton("Reset Camera", 0, 0, 130, 30,
 				"Reset camera to a sane state.");
-			btnAdd.eventClicked += (component, eventParam) => {
+			btnReset.eventClicked += (component, eventParam) => {
 				GameObject gameObject = GameObject.FindGameObjectWithTag("MainCamera");
 				if(gameObject == null) return;
 				CameraController cameraController = gameObject.GetComponent<CameraController>();
@@ -50,23 +66,41 @@ namespace JoystickCamera {
 			};
 
 			//Add debug toggle
-			panel.AddCheckbox("debug", 0, 75, parent.enableDebugDisplay,
+			tabPanel.AddCheckbox("debug", 0, 35, parent.enableDebugDisplay,
 			"Show debug info in-game.")
 			.eventClick += (component, eventParam) => {
 				//wtf
 				parent.enableDebugDisplay = !((UICustomCheckbox)component).isChecked;
 				//parent.SaveConfig();
 			};
-			panel.AddLabel("Show Debug Info", 20, 75);
+			tabPanel.AddLabel("Show Debug Info", 20, 35);
+		}
 
-			//Add current value display
-			foreach(var src in parent.GetInputSources()) {
-				AddCurrentValues(src);
-			}
+		protected void AddInputsTab(UICustomTabStrip tabStrip, UITabContainer tabContainer) {
+			UIButton tabButton = tabStrip.AddTab("Inputs",
+				out UIPanelWrapper tabPanel, "Input definitions");
+
+			//Add New Input button
+			UIButton btnAdd = tabPanel.AddButton("Add New Input", 0, 0, 130, 30,
+				"Add an input.");
+			btnAdd.eventClicked += (component, eventParam) => {
+				AddInput(parent.AddInput(), tabPanel);
+			};
 
 			//Add inputs
 			foreach(JoystickInputDef input in parent.GetInputs()) {
-				AddInput(input);
+				AddInput(input, tabPanel);
+			}
+		}
+
+		protected void AddCurrentInputsTab(UICustomTabStrip tabStrip, UITabContainer tabContainer) {
+			//Add current value display
+			UIButton tabButton = tabStrip.AddTab("Current Inputs",
+				out UIPanelWrapper tabPanel, "Current input values");
+
+			int y = 0;
+			foreach(var src in parent.GetInputSources()) {
+				y = AddCurrentValues(src, tabPanel, y) + 20;
 			}
 		}
 
@@ -75,16 +109,18 @@ namespace JoystickCamera {
 		/// </summary>
 		/// <remarks>This is helpful to find which axis maps to which physical
 		/// input on the joystick.</remarks>
-		protected void AddCurrentValues(InputSource source) {
+		protected int AddCurrentValues(InputSource source, UIPanelWrapper parent, int y) {
 			var name = source.Name;
 			var axisNames = source.GetAxisNames();
 			var axes = source.GetAxes();
 
-			UIHelperBase groupV = helper.AddGroup($"Current Input Values: {source.Name}");
-			var groupRoot = ((groupV as UIHelper).self as UIComponent);
-			int x = 0, y = 0;
+			//groupRoot.relativePosition = new Vector3(0, 0, 0);
+			var groupRoot = parent.Panel;
+			int x = 0;
 			UIPanelWrapper panel = null;
 			bool isFirst = true;
+			parent.AddLabel(source.Name, 100, y).textScale = 1.5f;
+			y += 30;
 
 			foreach(string axis in axisNames) {
 				if(axis == "None") continue;
@@ -97,12 +133,11 @@ namespace JoystickCamera {
 				}
 				panel.AddLabel(axis, x, 0);
 				var slider = panel.AddSlider(axis + "_curval",
-					x: x, y: 15, value: 0, min: -255, max: 255, step: 1);
-				//y += 25;
+					x: x, y: 17, value: 0, min: -255, max: 255, step: 1);
 				x += 300;
 				if(x >= 600) {
 					x = 0;
-					y += 25;
+					y += 30;
 				}
 
 				slider.isInteractive = false;
@@ -117,6 +152,8 @@ namespace JoystickCamera {
 					slider.value = axes[axis].GetValue();
 				};
 			}
+			if(x > 0) y += 30;
+			return y;
 		}
 
 		/// <summary>
@@ -139,14 +176,18 @@ namespace JoystickCamera {
 		/// Add the widgets for an input.
 		/// </summary>
 		/// <param name="input">Input.</param>
-		protected void AddInput(JoystickInputDef input) {
+		protected void AddInput(JoystickInputDef input, UIPanelWrapper container) {
 			//Create a sub-panel for this input.
 			//Put it in a group with empty name, so we get a nice divider.
 			//(The name can't be "" or it returns null.)
+			/* UIHelper helper = new UIHelper(container.Panel);
 			UIHelperBase group = helper.AddGroup(" ");
 			UIHelper groupAsHelper = (UIHelper)group;
-			UIComponent root = (UIComponent)groupAsHelper.self;
-			UIPanelWrapper panel = AddPanel(root, "InputPanel", 0, 0, 600, 100);
+			UIComponent root = (UIComponent)groupAsHelper.self; */
+			//UIPanelWrapper panel = AddPanel(root, "InputPanel", 0, 0, 600, 100);
+
+			Vector2 bounds = container.GetBounds();
+			UIPanelWrapper panel = container.AddPanel(input.Name, 0, (int)bounds.y, 600, 100);
 
 			var sources = parent.GetInputSources();
 			InputSource source = null;
