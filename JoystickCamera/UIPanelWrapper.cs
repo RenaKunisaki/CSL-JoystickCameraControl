@@ -134,6 +134,52 @@ namespace JoystickCamera {
 			return wrapper;
 		}
 
+		public UIPanelWrapper AddScrollablePanel(string name, int x, int y, int width, int height) {
+			var subPanel = panel.AddUIComponent<UIScrollablePanel>();
+			subPanel.relativePosition = new Vector3(x, y, 0);
+			subPanel.width = width;
+			subPanel.height = height;
+			var subSubPanel = subPanel.AddUIComponent<UIPanel>();
+			var wrapper = new UIPanelWrapper(subSubPanel, name, x, y, width, height);
+			this.children.Add(subPanel);
+
+			var scrollbar = subPanel.AddUIComponent<UIScrollbar>();
+			scrollbar.relativePosition = new Vector3(width - 15, 0, 0);
+			scrollbar.width = 15;
+			scrollbar.height = height;
+			scrollbar.orientation = UIOrientation.Vertical;
+			scrollbar.pivot = UIPivotPoint.BottomLeft;
+			//scrollbar.AlignTo((UIComponent)uiPanel2, UIAlignAnchor.TopRight);
+			scrollbar.minValue = 0.0f;
+			scrollbar.value = 0.0f;
+			scrollbar.incrementAmount = 100;
+			subPanel.verticalScrollbar = scrollbar;
+
+			//really, this isn't done for us?
+			//is this such a common thing that people want a scrollbar
+			//that you can't see?
+			//var handle = subPanel.AddUIComponent<UIDragHandle>();
+			//handle.target = subPanel;
+
+			UISlicedSprite uiSlicedSprite1 = scrollbar.AddUIComponent<UISlicedSprite>();
+			uiSlicedSprite1.relativePosition = (Vector3)Vector2.zero;
+			uiSlicedSprite1.autoSize = true;
+			uiSlicedSprite1.size = uiSlicedSprite1.parent.size;
+			uiSlicedSprite1.fillDirection = UIFillDirection.Vertical;
+			uiSlicedSprite1.spriteName = "ScrollbarTrack";
+			scrollbar.trackObject = (UIComponent)uiSlicedSprite1;
+
+			UISlicedSprite uiSlicedSprite2 = uiSlicedSprite1.AddUIComponent<UISlicedSprite>();
+			uiSlicedSprite2.relativePosition = (Vector3)Vector2.zero;
+			uiSlicedSprite2.fillDirection = UIFillDirection.Vertical;
+			uiSlicedSprite2.autoSize = true;
+			uiSlicedSprite2.width = uiSlicedSprite2.parent.width - 4f;
+			uiSlicedSprite2.spriteName = "ScrollbarThumb";
+			scrollbar.thumbObject = (UIComponent)uiSlicedSprite2;
+
+			return wrapper;
+		}
+
 		/// <summary>
 		/// Add a label.
 		/// </summary>
@@ -362,6 +408,11 @@ namespace JoystickCamera {
 			UnityEngine.Object.Destroy(component);
 		}
 
+		/// <summary>
+		/// Get the width and height of the area used.
+		/// </summary>
+		/// <returns>The bounds.</returns>
+		/// <remarks>Assumes the upper left boundary is (0, 0).</remarks>
 		public Vector2 GetBounds() {
 			Vector2 bounds = new Vector2(0, 0);
 			foreach(var child in children) {

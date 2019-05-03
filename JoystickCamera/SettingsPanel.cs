@@ -87,9 +87,14 @@ namespace JoystickCamera {
 				AddInput(parent.AddInput(), tabPanel);
 			};
 
+			//why -100 here? no idea
+			var scrollablePanel = tabPanel.AddScrollablePanel("inputs_scrollable",
+				0, 30, (int)tabContainer.width - 100, (int)tabContainer.height);
+			scrollablePanel.Panel.backgroundSprite = "SubBarButtonBase";
+
 			//Add inputs
 			foreach(JoystickInputDef input in parent.GetInputs()) {
-				AddInput(input, tabPanel);
+				AddInput(input, scrollablePanel);
 			}
 		}
 
@@ -177,17 +182,8 @@ namespace JoystickCamera {
 		/// </summary>
 		/// <param name="input">Input.</param>
 		protected void AddInput(JoystickInputDef input, UIPanelWrapper container) {
-			//Create a sub-panel for this input.
-			//Put it in a group with empty name, so we get a nice divider.
-			//(The name can't be "" or it returns null.)
-			/* UIHelper helper = new UIHelper(container.Panel);
-			UIHelperBase group = helper.AddGroup(" ");
-			UIHelper groupAsHelper = (UIHelper)group;
-			UIComponent root = (UIComponent)groupAsHelper.self; */
-			//UIPanelWrapper panel = AddPanel(root, "InputPanel", 0, 0, 600, 100);
-
 			Vector2 bounds = container.GetBounds();
-			UIPanelWrapper panel = container.AddPanel(input.Name, 0, (int)bounds.y, 600, 100);
+			UIPanelWrapper panel = container.AddPanel(input.Name, 0, (int)bounds.y + 30, 600, 100);
 
 			var sources = parent.GetInputSources();
 			InputSource source = null;
