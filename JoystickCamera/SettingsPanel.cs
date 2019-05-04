@@ -27,12 +27,12 @@ namespace JoystickCamera {
 			//Add notes
 			UIHelperBase groupG = helper.AddGroup(" ");
 			var groupRoot = ((groupG as UIHelper).self as UIComponent);
-			var panel = this.AddPanel(groupRoot, "general", 0, 0, 600, 2);
+			var panel = this.AddPanel(groupRoot, "settings", 0, 0, 600, 2);
 
 			UICustomTabStrip tabStrip = panel.AddTabStrip("tabstrip",
 				out UITabContainer tabContainer);
 			tabStrip.relativePosition = new Vector3(0, -20, 0);
-			//tabContainer.backgroundSprite = "SubBarButtonBase";
+			//tabContainer.backgroundSprite = "SubBarButtonBase"; //debug
 			/*
 			panel.AddLabel(
 				"· Up/Down movement is usually ignored by the game,\n" +
@@ -46,7 +46,6 @@ namespace JoystickCamera {
 			AddGeneralTab(tabStrip, tabContainer);
 			AddInputsTab(tabStrip, tabContainer);
 			AddCurrentInputsTab(tabStrip, tabContainer);
-
 
 			tabStrip.selectedIndex = 0;
 		}
@@ -97,11 +96,13 @@ namespace JoystickCamera {
 			foreach(JoystickInputDef input in parent.GetInputs()) {
 				AddInput(input, scrollablePanel);
 			}
+			//+500 because no idea
 			scrollbar.maxValue = scrollablePanel.height + scrollbar.scrollSize + 500;
 			scrollablePanel.Panel.parent.height = scrollablePanel.height;
 			//scrollbar.autoSize = true;
 			scrollbar.autoHide = true;
 			scrollbar.incrementAmount = 120; //about the height of one entry
+			btnAdd.BringToFront();
 		}
 
 		protected void AddCurrentInputsTab(UICustomTabStrip tabStrip, UITabContainer tabContainer) {
