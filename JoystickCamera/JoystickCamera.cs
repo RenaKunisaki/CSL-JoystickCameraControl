@@ -1,8 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using HidSharp;
+using ColossalFramework.UI;
 using ICities;
 using UnityEngine;
 using static JoystickCamera.JoystickInputDef;
@@ -186,10 +186,52 @@ namespace JoystickCamera {
 		#region Settings UI
 
 		/// <summary>
+		/// Coroutine that runs in UI thread. Waits for UI to be ready and
+		/// displays a popup message.
+		/// </summary>
+		/// <returns>The message coroutine.</returns>
+		/// <param name="view">UIView.</param>
+		protected IEnumerator PopupMessageCoroutine(UIView view) {
+			Log("Coroutine running");
+
+			ExceptionPanel panel = null;
+			while(true) {
+				if(view.panelsLibrary != null) {
+					panel = view.panelsLibrary.ShowModal<ExceptionPanel>(
+						"ExceptionPanel", true);
+					if(panel != null) {
+						panel.SetMessage("Joystick Camera Control",
+							"This mod now supports using USB devices such as mice.\n" +
+							"It will now look for usable devices. This might trigger\n" +
+							"some warning message from your OS. This is normal.\n" +
+							"\n(This message won't show again!)",
+							false);
+						Log("Done showing message");
+						break;
+					}
+				}
+				yield return new WaitForSeconds(1);
+			}
+
+			while(panel.component.isVisible) yield return new WaitForSeconds(0.1f);
+			Log("Panel closed");
+
+			yield return null;
+		}
+
+		/// <summary>
 		/// Called to display the UI in the settings window.
 		/// </summary>
 		/// <param name="helper">UI Helper.</param>
 		public void OnSettingsUI(UIHelperBase helper) {
+			// display message
+
+			UIView view = ((helper as UIHelper).self as UIComponent).GetUIView();
+			if(view == null) Log("no UIView");
+			else {
+				view.StartCoroutine(PopupMessageCoroutine(view));
+			}
+
 			this.settingsPanel = new SettingsPanel(this, helper);
 			this.settingsPanel.Run();
 		}
