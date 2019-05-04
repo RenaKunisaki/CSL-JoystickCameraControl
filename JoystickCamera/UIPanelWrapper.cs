@@ -134,48 +134,81 @@ namespace JoystickCamera {
 			return wrapper;
 		}
 
-		public UIPanelWrapper AddScrollablePanel(string name, int x, int y, int width, int height) {
+		public UIPanelWrapper AddScrollablePanel(string name, int x, int y, int width, int height,
+		out UIScrollbar scrollbar) {
 			var subPanel = panel.AddUIComponent<UIScrollablePanel>();
 			subPanel.relativePosition = new Vector3(x, y, 0);
 			subPanel.width = width;
 			subPanel.height = height;
+			subPanel.autoSize = true;
+			subPanel.clipChildren = false;
+			//why is this necessary? no idea, these scrollbars suck
+			//I'm definitely doing something wrong but I don't fucking know
+			//and I'm sick of fighting with it
+			subPanel.freeScroll = true;
 			var subSubPanel = subPanel.AddUIComponent<UIPanel>();
 			var wrapper = new UIPanelWrapper(subSubPanel, name, x, y, width, height);
 			this.children.Add(subPanel);
 
-			var scrollbar = subPanel.AddUIComponent<UIScrollbar>();
-			scrollbar.relativePosition = new Vector3(width - 15, 0, 0);
-			scrollbar.width = 15;
-			scrollbar.height = height;
-			scrollbar.orientation = UIOrientation.Vertical;
-			scrollbar.pivot = UIPivotPoint.BottomLeft;
+			var cSharpIsAButt = panel.AddUIComponent<UIScrollbar>();
+			scrollbar = cSharpIsAButt;
+			cSharpIsAButt.relativePosition = new Vector3(width - 15, 0, 0);
+			cSharpIsAButt.width = 15;
+			cSharpIsAButt.height = height;
+			cSharpIsAButt.orientation = UIOrientation.Vertical;
+			cSharpIsAButt.pivot = UIPivotPoint.BottomLeft;
 			//scrollbar.AlignTo((UIComponent)uiPanel2, UIAlignAnchor.TopRight);
-			scrollbar.minValue = 0.0f;
-			scrollbar.value = 0.0f;
-			scrollbar.incrementAmount = 100;
-			subPanel.verticalScrollbar = scrollbar;
+			cSharpIsAButt.minValue = 0.0f;
+			//scrollbar.maxValue = 900f;
+			cSharpIsAButt.value = 0.0f;
+			cSharpIsAButt.incrementAmount = 10;
+			//subPanel.verticalScrollbar = scrollbar;
 
 			//really, this isn't done for us?
 			//is this such a common thing that people want a scrollbar
 			//that you can't see?
-			//var handle = subPanel.AddUIComponent<UIDragHandle>();
-			//handle.target = subPanel;
-
-			UISlicedSprite uiSlicedSprite1 = scrollbar.AddUIComponent<UISlicedSprite>();
+			UISlicedSprite uiSlicedSprite1 = cSharpIsAButt.AddUIComponent<UISlicedSprite>();
 			uiSlicedSprite1.relativePosition = (Vector3)Vector2.zero;
 			uiSlicedSprite1.autoSize = true;
 			uiSlicedSprite1.size = uiSlicedSprite1.parent.size;
 			uiSlicedSprite1.fillDirection = UIFillDirection.Vertical;
 			uiSlicedSprite1.spriteName = "ScrollbarTrack";
-			scrollbar.trackObject = (UIComponent)uiSlicedSprite1;
+			cSharpIsAButt.trackObject = (UIComponent)uiSlicedSprite1;
 
-			UISlicedSprite uiSlicedSprite2 = uiSlicedSprite1.AddUIComponent<UISlicedSprite>();
-			uiSlicedSprite2.relativePosition = (Vector3)Vector2.zero;
-			uiSlicedSprite2.fillDirection = UIFillDirection.Vertical;
-			uiSlicedSprite2.autoSize = true;
-			uiSlicedSprite2.width = uiSlicedSprite2.parent.width - 4f;
-			uiSlicedSprite2.spriteName = "ScrollbarThumb";
-			scrollbar.thumbObject = (UIComponent)uiSlicedSprite2;
+			UISlicedSprite handle = uiSlicedSprite1.AddUIComponent<UISlicedSprite>();
+			//UIDragHandle is great if you want to just drag the whole box like a window...
+			//var handle = uiSlicedSprite1.AddUIComponent<UIDragHandle>();
+			//handle.target = subPanel;
+
+			handle.relativePosition = (Vector3)Vector2.zero;
+			handle.fillDirection = UIFillDirection.Vertical;
+			//handle.autoSize = true;
+			handle.width = handle.parent.width - 4f;
+			//handle.height = 500; //ignored
+			handle.spriteName = "ScrollbarThumb";
+			cSharpIsAButt.thumbObject = (UIComponent)handle;
+			scrollbar.scrollSize = 50;
+
+			cSharpIsAButt.eventValueChanged += (component, value) => {
+				//JoystickCamera.Log($"Scroll pos {subPanel.scrollPosition.x}, {subPanel.scrollPosition.y} to {value}");
+				//subPanel.scrollPosition = new Vector2(0, value);
+				//AWFUL HORRIBLE HACK
+				//if I change the scroll position it jumps back up when I click things.
+				//if I do this instead, it doesn't.
+				//the only thing more awful than this UI system is having to try
+				//to use it with zero documentation.
+				subPanel.relativePosition = new Vector3(0, -value, 0);
+			};
+			subPanel.eventSizeChanged += (component, value) => {
+				//we can't access `scrollbar` directly in here because it's
+				//an out parameter, hence this name.
+				JoystickCamera.Log("Resize subpanel");
+				cSharpIsAButt.maxValue = value.y + cSharpIsAButt.scrollSize;
+			};
+			subSubPanel.eventSizeChanged += (component, value) => {
+				JoystickCamera.Log("Resize subsubpanel");
+				subPanel.FitToContents();
+			};
 
 			return wrapper;
 		}

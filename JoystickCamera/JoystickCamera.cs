@@ -95,7 +95,7 @@ namespace JoystickCamera {
 			Log("Loading config...");
 			var data = (new Configuration()).Load();
 			this.inputs = data.GetInputs(this);
-			Log("Loaded config.");
+			Log($"Loaded config; have {inputs.Count} inputs");
 		}
 
 		/// <summary>

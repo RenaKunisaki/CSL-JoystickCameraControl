@@ -87,20 +87,26 @@ namespace JoystickCamera {
 				AddInput(parent.AddInput(), tabPanel);
 			};
 
-			//why -100 here? no idea
+			//why -50 here? no idea
 			var scrollablePanel = tabPanel.AddScrollablePanel("inputs_scrollable",
-				0, 30, (int)tabContainer.width - 100, (int)tabContainer.height);
-			scrollablePanel.Panel.backgroundSprite = "SubBarButtonBase";
+				0, 30, (int)tabContainer.width - 50, (int)tabContainer.height - 100,
+				out UIScrollbar scrollbar);
+			//scrollablePanel.Panel.backgroundSprite = "SubBarButtonBase";
 
 			//Add inputs
 			foreach(JoystickInputDef input in parent.GetInputs()) {
 				AddInput(input, scrollablePanel);
 			}
+			scrollbar.maxValue = scrollablePanel.height + scrollbar.scrollSize + 500;
+			scrollablePanel.Panel.parent.height = scrollablePanel.height;
+			//scrollbar.autoSize = true;
+			scrollbar.autoHide = true;
+			scrollbar.incrementAmount = 120; //about the height of one entry
 		}
 
 		protected void AddCurrentInputsTab(UICustomTabStrip tabStrip, UITabContainer tabContainer) {
 			//Add current value display
-			UIButton tabButton = tabStrip.AddTab("Current Inputs",
+			UIButton tabButton = tabStrip.AddTab("Devices",
 				out UIPanelWrapper tabPanel, "Current input values");
 
 			int y = 0;
