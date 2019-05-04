@@ -31,6 +31,9 @@ namespace JoystickCamera {
 			public List<ModifierDef> modifiers;
 		}
 
+		public int modVersion = 0;
+		public int configVersion = 0;
+
 		[XmlArray("inputs")]
 		public List<InputDef> inputs;
 

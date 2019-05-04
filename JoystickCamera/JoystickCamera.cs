@@ -12,6 +12,8 @@ namespace JoystickCamera {
 		public string Name => "Joystick Camera Control";
 		public string Description => "Use a joystick to control the camera.";
 		public readonly float PI_OVER_180 = Mathf.PI / 180f;
+		public readonly int Version = 20000; //Mod version (2.00.00)
+		public readonly int ConfigVersion = 20000; //config file format version
 		protected List<JoystickInputDef> inputs;
 		protected List<InputSource> inputSources;
 		protected InputSource defaultInputSource;
@@ -19,6 +21,8 @@ namespace JoystickCamera {
 		protected DebugCameraDisplay debugDisplay;
 		public bool enableDebugDisplay = false;
 		protected bool didMoveWithMouse = false;
+		protected int loadedConfigVersion; //config file format version we loaded
+		protected int loadedConfigModVersion; //version that wrote the config file
 
 		public JoystickCamera() {
 			Log("Instantiated");
@@ -82,7 +86,11 @@ namespace JoystickCamera {
 		/// </summary>
 		public void SaveConfig() {
 			Log("Saving config...");
-			ConfigData data = new ConfigData();
+			ConfigData data = new ConfigData {
+				modVersion = Version,
+				configVersion = Version
+			};
+
 			data.SetInputs(GetInputs());
 			(new Configuration()).Save(data);
 			Log("Saved config.");
@@ -94,8 +102,13 @@ namespace JoystickCamera {
 		public void LoadConfig() {
 			Log("Loading config...");
 			var data = (new Configuration()).Load();
+			this.loadedConfigVersion = data.configVersion;
+			this.loadedConfigModVersion = data.modVersion;
+			if(this.loadedConfigModVersion > this.Version) {
+				Log($"Loaded config from version {loadedConfigModVersion} but we're only version {Version}!");
+			}
 			this.inputs = data.GetInputs(this);
-			Log($"Loaded config; have {inputs.Count} inputs");
+			Log($"Loaded config (from v{data.modVersion}); have {inputs.Count} inputs");
 		}
 
 		/// <summary>
@@ -215,6 +228,7 @@ namespace JoystickCamera {
 
 			while(panel.component.isVisible) yield return new WaitForSeconds(0.1f);
 			Log("Panel closed");
+			SaveConfig(); //update the saved version so we don't show this again
 
 			yield return null;
 		}
@@ -224,12 +238,15 @@ namespace JoystickCamera {
 		/// </summary>
 		/// <param name="helper">UI Helper.</param>
 		public void OnSettingsUI(UIHelperBase helper) {
-			// display message
-
-			UIView view = ((helper as UIHelper).self as UIComponent).GetUIView();
-			if(view == null) Log("no UIView");
-			else {
-				view.StartCoroutine(PopupMessageCoroutine(view));
+			if(loadedConfigModVersion < 20000) {
+				//Show message about scanning USB devices.
+				//If the config file was written by an older version than this,
+				//then we haven't shown the message yet.
+				UIView view = ((helper as UIHelper).self as UIComponent).GetUIView();
+				if(view == null) Log("no UIView");
+				else {
+					view.StartCoroutine(PopupMessageCoroutine(view));
+				}
 			}
 
 			this.settingsPanel = new SettingsPanel(this, helper);
