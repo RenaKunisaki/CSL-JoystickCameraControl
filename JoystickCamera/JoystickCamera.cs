@@ -47,9 +47,20 @@ namespace JoystickCamera {
 				{ defaultInputSource.Name, defaultInputSource },
 			};
 			inputs = new List<JoystickInputDef>();
-			DoStartup();
+
+			//Load the config but don't parse the input list,
+			//to see if we should scan for USB devices.
+			TryLoadConfig(false);
+			if(enableUsbDevices) EnumerateDevices();
+			//Now that we've maybe scanned, parse the inputs.
+			TryLoadConfig();
 		}
 
+		/// <summary>
+		/// Find input source by name.
+		/// </summary>
+		/// <returns>The input source, or <see langword="null"/> if not found.</returns>
+		/// <param name="name">Name.</param>
 		public InputSource GetInputSource(string name) {
 			try {
 				return inputSourceDict[name];
@@ -59,19 +70,30 @@ namespace JoystickCamera {
 			}
 		}
 
+		/// <summary>
+		/// Get list of input sources.
+		/// </summary>
+		/// <returns>The input sources.</returns>
 		public List<InputSource> GetInputSources() {
 			return inputSources;
 		}
 
+		/// <summary>
+		/// Gets the default input source.
+		/// </summary>
+		/// <returns>The default input source.</returns>
 		public InputSource GetDefaultInputSource() {
 			return defaultInputSource;
 		}
 
 		#region Devices
 
+		/// <summary>
+		/// Scans for compatible USB devices, if not done so already.
+		/// </summary>
+		/// <remarks>Does not honor the <see cref="enableUsbDevices"/> setting.</remarks>
 		public void EnumerateDevices() {
 			if(didEnumerateDevices) return;
-			//Get available devices
 			try {
 				Log("Scanning USB devices...");
 				foreach(var device in HidDeviceHandler.GetDevices()) {
@@ -91,6 +113,32 @@ namespace JoystickCamera {
 			catch(Exception ex) {
 				Log($"Error enumerating HID devices: {ex}");
 			}
+		}
+
+		/// <summary>
+		/// Get the input list.
+		/// </summary>
+		/// <returns>The inputs.</returns>
+		public List<JoystickInputDef> GetInputs() {
+			return inputs;
+		}
+
+		/// <summary>
+		/// Add a new input with default settings.
+		/// </summary>
+		/// <returns>The input.</returns>
+		public JoystickInputDef AddInput() {
+			JoystickInputDef input = new JoystickInputDef();
+			inputs.Add(input);
+			return input;
+		}
+
+		/// <summary>
+		/// Remove the specified input.
+		/// </summary>
+		/// <param name="input">Input.</param>
+		public void RemoveInput(JoystickInputDef input) {
+			inputs.Remove(input);
 		}
 
 		#endregion Devices
@@ -159,49 +207,6 @@ namespace JoystickCamera {
 				Log($"Error loading config file: {ex}");
 				AddDefaultInputs();
 			}
-		}
-
-		/// <summary>
-		/// Performs startup tasks: scan USB devices, load config, populate settings panel.
-		/// </summary>
-		/// <remarks>This is called after the user closes the message about
-		/// scanning for USB devices, or immediately if that message isn't shown.</remarks>
-		protected void DoStartup() {
-			if(loadedConfigVersion < 0) {
-				//Config wasn't loaded yet.
-				//Load it, but don't parse the input list yet
-				//because we don't have the device list.
-				TryLoadConfig(false);
-			}
-
-			if(enableUsbDevices) EnumerateDevices();
-			TryLoadConfig();
-		}
-
-		/// <summary>
-		/// Get the input list.
-		/// </summary>
-		/// <returns>The inputs.</returns>
-		public List<JoystickInputDef> GetInputs() {
-			return inputs;
-		}
-
-		/// <summary>
-		/// Add a new input with default settings.
-		/// </summary>
-		/// <returns>The input.</returns>
-		public JoystickInputDef AddInput() {
-			JoystickInputDef input = new JoystickInputDef();
-			inputs.Add(input);
-			return input;
-		}
-
-		/// <summary>
-		/// Remove the specified input.
-		/// </summary>
-		/// <param name="input">Input.</param>
-		public void RemoveInput(JoystickInputDef input) {
-			inputs.Remove(input);
 		}
 
 		#endregion Config
@@ -468,6 +473,9 @@ namespace JoystickCamera {
 
 		#endregion ThreadingExtensionBase
 
+		/// <summary>
+		/// Poll all input sources for new state.
+		/// </summary>
 		protected void UpdateInputSources() {
 			foreach(var source in inputSources) {
 				try {
@@ -480,6 +488,9 @@ namespace JoystickCamera {
 			}
 		}
 
+		/// <summary>
+		/// Refresh the debug display, creating/destroying it if necessary.
+		/// </summary>
 		protected void UpdateDebugDisplay() {
 			if(enableDebugDisplay) {
 				if(this.debugDisplay == null) {
@@ -497,9 +508,19 @@ namespace JoystickCamera {
 			}
 		}
 
+		/// <summary>
+		/// Read the current input states and generate transformations for the camera.
+		/// </summary>
+		/// <param name="realTimeDelta">Real time passed since last frame.</param>
+		/// <param name="translateRelative">Camera-relative translation delta.</param>
+		/// <param name="translateWorld">World-relative translation delta.</param>
+		/// <param name="rotate">Rotation delta.</param>
+		/// <param name="zoom">Zoom delta.</param>
+		/// <param name="modifiers">Modifier states.</param>
 		protected void GetTransforms(float realTimeDelta, out Vector3 translateRelative,
 		out Vector3 translateWorld, out Vector2 rotate, out float zoom,
 		out Dictionary<ModifierButton, bool> modifiers) {
+			//this multiply isn't strictly necessary, just makes the math nicer
 			float t = realTimeDelta * 60; //should be ~1/60 of a second
 			translateRelative = new Vector3(0, 0, 0); //screen relative movement
 			translateWorld = new Vector3(0, 0, 0); //compass movement
