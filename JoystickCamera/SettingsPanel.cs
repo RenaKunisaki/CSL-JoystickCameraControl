@@ -112,13 +112,13 @@ namespace JoystickCamera {
 				"or do a complete circle.", 20, 75);
 
 			//Add debug toggle
-			tabPanel.AddCheckbox("debug", 0, 130, parent.enableDebugDisplay,
+			tabPanel.AddCheckbox("debug", 0, 135, parent.enableDebugDisplay,
 			"Show debug info in-game.")
 			.OnChange += (isChecked) => {
 				parent.enableDebugDisplay = isChecked;
 				parent.SaveConfig();
 			};
-			tabPanel.AddLabel("Show Debug Info", 20, 130);
+			tabPanel.AddLabel("Show Debug Info", 20, 135);
 		}
 
 		protected void AddInputsTab(UICustomTabStrip tabStrip, UITabContainer tabContainer) {
