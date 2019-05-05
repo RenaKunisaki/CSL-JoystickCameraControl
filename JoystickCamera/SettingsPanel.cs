@@ -67,10 +67,8 @@ namespace JoystickCamera {
 			//Add debug toggle
 			tabPanel.AddCheckbox("debug", 0, 35, parent.enableDebugDisplay,
 			"Show debug info in-game.")
-			.eventClick += (component, eventParam) => {
-				//wtf
-				parent.enableDebugDisplay = !parent.enableDebugDisplay;
-				((UICustomCheckbox)component).isChecked = parent.enableDebugDisplay;
+			.OnChange += (isChecked) => {
+				parent.enableDebugDisplay = isChecked;
 				parent.SaveConfig();
 			};
 			tabPanel.AddLabel("Show Debug Info", 20, 35);
@@ -277,11 +275,8 @@ namespace JoystickCamera {
 			//Add invert checkbox.
 			panel.AddCheckbox("invert", 0, 60, input.sign < 0,
 			"Move in opposite direction.")
-			.eventClick += (component, eventParam) => {
-				//invert checkbox logic because isChecked updates AFTER
-				//this callback, even though the callback that handles
-				//that is added before this one. WTF?
-				input.sign = !((UICustomCheckbox)component).isChecked ? -1 : 1;
+			.OnChange += (isChecked) => {
+				input.sign = isChecked ? -1 : 1;
 				parent.SaveConfig();
 			};
 			panel.AddLabel("Invert", 20, 60);
@@ -289,8 +284,8 @@ namespace JoystickCamera {
 			//Add smoothing checkbox.
 			panel.AddCheckbox("smoothing", 85, 60, input.smoothing,
 			"Use Unity's input smoothing.")
-			.eventClick += (component, eventParam) => {
-				input.smoothing = !((UICustomCheckbox)component).isChecked;
+			.OnChange += (isChecked) => {
+				input.smoothing = isChecked;
 				parent.SaveConfig();
 			};
 			panel.AddLabel("Smoothing", 105, 60);
@@ -298,8 +293,8 @@ namespace JoystickCamera {
 			//Add relative checkbox.
 			panel.AddCheckbox("relative", 200, 60, input.relative,
 			"Use relative input values.")
-			.eventClick += (component, eventParam) => {
-				input.relative = !((UICustomCheckbox)component).isChecked;
+			.OnChange += (isChecked) => {
+				input.relative = isChecked;
 				parent.SaveConfig();
 			};
 			panel.AddLabel("Relative", 220, 60);
@@ -370,18 +365,16 @@ namespace JoystickCamera {
 				"Button must not be held");
 
 			//Add checkbox event handlers.
-			chkHeld.eventClicked += (component, eventParam) => {
-				mod.condition = chkHeld.isChecked ?
+			chkHeld.OnChange += (isChecked) => {
+				mod.condition = isChecked ?
 					JoystickInputDef.ModifierCondition.HELD
 					: JoystickInputDef.ModifierCondition.NOT_HELD;
-				chkNotHeld.isChecked = !chkHeld.isChecked;
 				parent.SaveConfig();
 			};
-			chkNotHeld.eventClicked += (component, eventParam) => {
-				mod.condition = chkNotHeld.isChecked ?
+			chkNotHeld.OnChange += (isChecked) => {
+				mod.condition = isChecked ?
 					JoystickInputDef.ModifierCondition.NOT_HELD
 					: JoystickInputDef.ModifierCondition.HELD;
-				chkHeld.isChecked = !chkNotHeld.isChecked;
 				parent.SaveConfig();
 			};
 

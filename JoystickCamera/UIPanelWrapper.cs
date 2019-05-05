@@ -8,9 +8,13 @@ namespace JoystickCamera {
 	/// A custom checkbox widget. Used because it's easier than the default one.
 	/// </summary>
 	public class UICustomCheckbox: UISprite {
+		public delegate void OnChangeDelegate(bool isChecked);
+		public OnChangeDelegate OnChange;
+
 		public UICustomCheckbox() {
 			this.eventClicked += (component, eventParam) => {
 				this.isChecked = !this.isChecked;
+				if(OnChange != null) OnChange.Invoke(isChecked);
 			};
 		}
 
