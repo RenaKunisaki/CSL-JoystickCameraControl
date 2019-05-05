@@ -436,12 +436,14 @@ namespace JoystickCamera {
 				mod.condition = isChecked ?
 					JoystickInputDef.ModifierCondition.HELD
 					: JoystickInputDef.ModifierCondition.NOT_HELD;
+				chkNotHeld.isChecked = !isChecked;
 				parent.SaveConfig();
 			};
 			chkNotHeld.OnChange += (isChecked) => {
 				mod.condition = isChecked ?
 					JoystickInputDef.ModifierCondition.NOT_HELD
 					: JoystickInputDef.ModifierCondition.HELD;
+				chkHeld.isChecked = !isChecked;
 				parent.SaveConfig();
 			};
 
