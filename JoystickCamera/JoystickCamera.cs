@@ -10,7 +10,7 @@ using static JoystickCamera.JoystickInputDef;
 namespace JoystickCamera {
 	public class JoystickCamera: ThreadingExtensionBase, IUserMod {
 		public string Name => "Joystick Camera Control";
-		public string Description => "Use a joystick to control the camera.";
+		public string Description => "Use a joystick, extra mice, etc to control the camera.";
 		public readonly float PI_OVER_180 = Mathf.PI / 180f;
 		public readonly int Version = 20000; //Mod version (2.00.00)
 		public readonly int ConfigVersion = 20000; //config file format version
