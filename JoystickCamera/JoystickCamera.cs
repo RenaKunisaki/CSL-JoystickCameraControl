@@ -16,6 +16,7 @@ namespace JoystickCamera {
 		public readonly int ConfigVersion = 20000; //config file format version
 		protected List<JoystickInputDef> inputs;
 		protected List<InputSource> inputSources;
+		protected Dictionary<string, InputSource> inputSourceDict;
 		protected InputSource defaultInputSource;
 		protected SettingsPanel settingsPanel;
 		protected DebugCameraDisplay debugDisplay;
@@ -23,6 +24,7 @@ namespace JoystickCamera {
 		protected bool didMoveWithMouse = false;
 		protected int loadedConfigVersion; //config file format version we loaded
 		protected int loadedConfigModVersion; //version that wrote the config file
+		protected UIHelperBase settingsUiHelper;
 
 		public JoystickCamera() {
 			Log("Instantiated");
@@ -33,22 +35,105 @@ namespace JoystickCamera {
 			//But, that mode isn't configurable, and has some issues
 			//(eg I can zoom out but not in).
 
+			loadedConfigVersion = -1; //none loaded yet
 			defaultInputSource = new UnityInputSource();
 			inputSources = new List<InputSource> { defaultInputSource };
+			inputSourceDict = new Dictionary<string, InputSource> {
+				{ defaultInputSource.Name, defaultInputSource },
+			};
+			inputs = new List<JoystickInputDef>();
+		}
 
+		//debug
+		public bool DidMoveWithMouse { get => didMoveWithMouse; }
+
+		public InputSource GetInputSource(string name) {
+			try {
+				return inputSourceDict[name];
+			}
+			catch(KeyNotFoundException) {
+				return null;
+			}
+		}
+
+		public List<InputSource> GetInputSources() {
+			return inputSources;
+		}
+
+		public InputSource GetDefaultInputSource() {
+			return defaultInputSource;
+		}
+
+		#region Devices
+
+		protected void EnumerateDevices() {
 			//Get available devices
 			try {
+				Log("Scanning USB devices...");
 				foreach(var device in HidDeviceHandler.GetDevices()) {
-					inputSources.Add(new HidInputSource(device));
+					//ensure unique name if multiple devices
+					var name = device.Name;
+					int idx = 2;
+					while(inputSourceDict.ContainsKey(name)) {
+						name = $"{device.Name} #{idx}";
+						idx++;
+					}
+					var source = new HidInputSource(device, name);
+					inputSources.Add(source);
+					inputSourceDict[name] = source;
 				}
 			}
 			catch(Exception ex) {
 				Log($"Error enumerating HID devices: {ex}");
 			}
+		}
 
-			inputs = new List<JoystickInputDef>();
+		#endregion Devices
+
+		#region Config
+
+		/// <summary>
+		/// Saves the config.
+		/// </summary>
+		public void SaveConfig() {
+			Log("Saving config...");
+			ConfigData data = new ConfigData {
+				modVersion = Version,
+				configVersion = Version,
+			};
+
+			data.SetInputs(GetInputs());
+			(new Configuration(this)).Save(data);
+			Log("Saved config.");
+		}
+
+		/// <summary>
+		/// Loads the config.
+		/// </summary>
+		public void LoadConfig(bool parse = true) {
+			Log("Loading config...");
+			var data = (new Configuration(this)).Load();
+			this.loadedConfigVersion = data.configVersion;
+			this.loadedConfigModVersion = data.modVersion;
+			if(this.loadedConfigModVersion > this.Version) {
+				Log($"Loaded config from version {loadedConfigModVersion} " +
+					$"but we're only version {Version}!");
+			}
+			if(parse) {
+				this.inputs = data.GetInputs(this);
+				Log($"Loaded config (from v{data.modVersion}); have {inputs.Count} inputs");
+			}
+			else {
+				Log($"Loaded config (from v{data.modVersion}), not parsing yet");
+			}
+		}
+
+		/// <summary>
+		/// Tries to load config. If it fails, loads default inputs.
+		/// </summary>
+		protected void TryLoadConfig(bool parse = true) {
 			try {
-				LoadConfig();
+				LoadConfig(parse);
 			}
 			catch(FileNotFoundException) {
 				Log("Config file not found");
@@ -61,54 +146,17 @@ namespace JoystickCamera {
 			}
 		}
 
-		//debug
-		public bool DidMoveWithMouse { get => didMoveWithMouse; }
-
-		public InputSource GetInputSource(string name) {
-			foreach(var source in inputSources) {
-				if(source != null && source.Name == name) return source;
-			}
-			return null;
-		}
-
-		public List<InputSource> GetInputSources() {
-			return inputSources;
-		}
-
-		public InputSource GetDefaultInputSource() {
-			return defaultInputSource;
-		}
-
-		#region Config
-
 		/// <summary>
-		/// Saves the config.
+		/// Performs startup tasks: scan USB devices, load config, populate settings panel.
 		/// </summary>
-		public void SaveConfig() {
-			Log("Saving config...");
-			ConfigData data = new ConfigData {
-				modVersion = Version,
-				configVersion = Version
-			};
-
-			data.SetInputs(GetInputs());
-			(new Configuration()).Save(data);
-			Log("Saved config.");
-		}
-
-		/// <summary>
-		/// Loads the config.
-		/// </summary>
-		public void LoadConfig() {
-			Log("Loading config...");
-			var data = (new Configuration()).Load();
-			this.loadedConfigVersion = data.configVersion;
-			this.loadedConfigModVersion = data.modVersion;
-			if(this.loadedConfigModVersion > this.Version) {
-				Log($"Loaded config from version {loadedConfigModVersion} but we're only version {Version}!");
-			}
-			this.inputs = data.GetInputs(this);
-			Log($"Loaded config (from v{data.modVersion}); have {inputs.Count} inputs");
+		/// <remarks>This is called after the user closes the message about
+		/// scanning for USB devices, or immediately if that message isn't shown.</remarks>
+		protected void DoStartup() {
+			EnumerateDevices();
+			TryLoadConfig();
+			//the settings panel always exists, even if the options menu was never opened.
+			this.settingsPanel = new SettingsPanel(this, this.settingsUiHelper);
+			this.settingsPanel.Run();
 		}
 
 		/// <summary>
@@ -214,21 +262,25 @@ namespace JoystickCamera {
 						"ExceptionPanel", true);
 					if(panel != null) {
 						panel.SetMessage("Joystick Camera Control",
-							"This mod now supports using USB devices such as mice.\n" +
-							"It will now look for usable devices. This might trigger\n" +
-							"some warning message from your OS. This is normal.\n" +
+							"About to scan for compatible USB devices.\n" +
+							"This might trigger some warning messages;\n" +
+							"these are normal and harmless.\n" +
 							"\n(This message won't show again!)",
 							false);
 						Log("Done showing message");
 						break;
 					}
 				}
-				yield return new WaitForSeconds(1);
+				yield return new WaitForSeconds(0.5f);
 			}
 
+			//Wait until panel is closed.
 			while(panel.component.isVisible) yield return new WaitForSeconds(0.1f);
-			Log("Panel closed");
-			SaveConfig(); //update the saved version so we don't show this again
+			Log("Message closed");
+
+			DoStartup();
+			SaveConfig(); //save config with current mod version so it doesn't
+						  //show the message again next time.
 
 			yield return null;
 		}
@@ -238,19 +290,36 @@ namespace JoystickCamera {
 		/// </summary>
 		/// <param name="helper">UI Helper.</param>
 		public void OnSettingsUI(UIHelperBase helper) {
+			this.settingsUiHelper = helper;
+
+			if(loadedConfigVersion < 0) {
+				//Config wasn't loaded yet.
+				//Load it, but don't parse the input list yet
+				//because we don't have the device list.
+				TryLoadConfig(false);
+			}
+
 			if(loadedConfigModVersion < 20000) {
 				//Show message about scanning USB devices.
 				//If the config file was written by an older version than this,
 				//then we haven't shown the message yet.
 				UIView view = ((helper as UIHelper).self as UIComponent).GetUIView();
-				if(view == null) Log("no UIView");
+				if(view == null) {
+					Log("UIView not found!? Something is wrong, but let's try to continue...");
+					DoStartup();
+				}
 				else {
+					Log("Showing USB warning message.");
 					view.StartCoroutine(PopupMessageCoroutine(view));
+					//the coroutine will initiate scan when message is closed.
 				}
 			}
-
-			this.settingsPanel = new SettingsPanel(this, helper);
-			this.settingsPanel.Run();
+			else {
+				//Config file was written by version 2.00.00 or newer, which means
+				//we showed the message already, so go ahead and scan now.
+				Log("USB warning message was already shown before.");
+				DoStartup();
+			}
 		}
 
 		#endregion Settings UI

@@ -53,7 +53,8 @@ namespace JoystickCamera {
 		protected string name;
 		public string Name => name;
 
-		public InputSource() {
+		public InputSource(string name = null) {
+			if(name != null) this.name = name;
 			axes = new Dictionary<string, Axis>();
 			buttons = new Dictionary<string, Button>();
 		}

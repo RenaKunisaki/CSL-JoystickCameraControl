@@ -135,12 +135,14 @@ namespace JoystickCamera {
 	/// </summary>
 	public class Configuration {
 		protected string path;
+		protected JoystickCamera parent;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="T:JoystickCamera.Configuration"/> class.
 		/// </summary>
 		/// <param name="FileName">Config file name to use.</param>
-		public Configuration(string FileName = "JoystickCameraConfig.xml") {
+		public Configuration(JoystickCamera parent, string FileName = "JoystickCameraConfig.xml") {
+			this.parent = parent;
 			string FilePath = DataLocation.localApplicationData;
 			this.path = Path.Combine(FilePath, FileName);
 			JoystickCamera.Log($"Config path is {this.path}");

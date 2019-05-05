@@ -7,9 +7,9 @@ namespace JoystickCamera {
 	public class HidInputSource: InputSource {
 		protected HidDeviceHandler device;
 
-		public HidInputSource(HidDeviceHandler device) {
+		public HidInputSource(HidDeviceHandler device, string name = null) {
 			this.device = device;
-			this.name = device.Name;
+			this.name = name ?? device.Name;
 			foreach(var axis in device.GetAxisNames()) {
 				this.axes.Add(axis, new Axis());
 			}
