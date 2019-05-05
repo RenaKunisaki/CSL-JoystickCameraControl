@@ -137,10 +137,13 @@ namespace JoystickCamera {
 			tabPanel.AddButton("My mods on Steam Workshop", 0, 180, 250, 30).eventClicked += (component, eventParam) => {
 				Application.OpenURL("https://steamcommunity.com/id/renakunisaki/myworkshopfiles/?appid=255710");
 			};
-			tabPanel.AddButton("My Twitter", 0, 210, 100, 30).eventClicked += (component, eventParam) => {
+			tabPanel.AddButton("Source Code on Github", 250, 180, 250, 30).eventClicked += (component, eventParam) => {
+				Application.OpenURL("https://github.com/RenaKunisaki/CSL-JoystickCameraControl");
+			};
+			tabPanel.AddButton("My Twitter", 0, 210, 125, 30).eventClicked += (component, eventParam) => {
 				Application.OpenURL("https://twitter.com/RenaKunisaki");
 			};
-			tabPanel.AddButton("Buy me a Coffee", 100, 210, 200, 30).eventClicked += (component, eventParam) => {
+			tabPanel.AddButton("Buy me a Coffee", 125, 210, 200, 30).eventClicked += (component, eventParam) => {
 				Application.OpenURL("https://ko-fi.com/renakunisaki");
 			};
 		}
