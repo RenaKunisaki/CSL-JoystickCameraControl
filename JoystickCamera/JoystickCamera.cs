@@ -21,10 +21,15 @@ namespace JoystickCamera {
 		protected SettingsPanel settingsPanel;
 		protected DebugCameraDisplay debugDisplay;
 		public bool enableDebugDisplay = false;
+		public bool enableUsbDevices = false;
+		protected bool didEnumerateDevices = false;
 		protected bool didMoveWithMouse = false;
 		protected int loadedConfigVersion; //config file format version we loaded
 		protected int loadedConfigModVersion; //version that wrote the config file
 		protected UIHelperBase settingsUiHelper;
+
+		//debug
+		public bool DidMoveWithMouse { get => didMoveWithMouse; }
 
 		public JoystickCamera() {
 			Log("Instantiated");
@@ -42,10 +47,8 @@ namespace JoystickCamera {
 				{ defaultInputSource.Name, defaultInputSource },
 			};
 			inputs = new List<JoystickInputDef>();
+			DoStartup();
 		}
-
-		//debug
-		public bool DidMoveWithMouse { get => didMoveWithMouse; }
 
 		public InputSource GetInputSource(string name) {
 			try {
@@ -66,7 +69,8 @@ namespace JoystickCamera {
 
 		#region Devices
 
-		protected void EnumerateDevices() {
+		public void EnumerateDevices() {
+			if(didEnumerateDevices) return;
 			//Get available devices
 			try {
 				Log("Scanning USB devices...");
@@ -82,6 +86,7 @@ namespace JoystickCamera {
 					inputSources.Add(source);
 					inputSourceDict[name] = source;
 				}
+				didEnumerateDevices = true;
 			}
 			catch(Exception ex) {
 				Log($"Error enumerating HID devices: {ex}");
@@ -101,6 +106,7 @@ namespace JoystickCamera {
 				modVersion = Version,
 				configVersion = Version,
 				showDebugInfo = enableDebugDisplay,
+				useUsbDevices = enableUsbDevices,
 			};
 
 			data.SetInputs(GetInputs());
@@ -122,6 +128,7 @@ namespace JoystickCamera {
 			this.loadedConfigVersion = data.configVersion;
 			this.loadedConfigModVersion = data.modVersion;
 			this.enableDebugDisplay = data.showDebugInfo;
+			this.enableUsbDevices = data.useUsbDevices;
 
 			if(this.loadedConfigModVersion > this.Version) {
 				Log($"Loaded config from version {loadedConfigModVersion} " +
@@ -160,11 +167,15 @@ namespace JoystickCamera {
 		/// <remarks>This is called after the user closes the message about
 		/// scanning for USB devices, or immediately if that message isn't shown.</remarks>
 		protected void DoStartup() {
-			EnumerateDevices();
+			if(loadedConfigVersion < 0) {
+				//Config wasn't loaded yet.
+				//Load it, but don't parse the input list yet
+				//because we don't have the device list.
+				TryLoadConfig(false);
+			}
+
+			if(enableUsbDevices) EnumerateDevices();
 			TryLoadConfig();
-			//the settings panel always exists, even if the options menu was never opened.
-			this.settingsPanel = new SettingsPanel(this, this.settingsUiHelper);
-			this.settingsPanel.Run();
 		}
 
 		/// <summary>
@@ -260,6 +271,7 @@ namespace JoystickCamera {
 		/// </summary>
 		/// <returns>The message coroutine.</returns>
 		/// <param name="view">UIView.</param>
+		/// <remarks>Not used anymore, but left for reference.</remarks>
 		protected IEnumerator PopupMessageCoroutine(UIView view) {
 			Log("Coroutine running");
 
@@ -286,9 +298,9 @@ namespace JoystickCamera {
 			while(panel.component.isVisible) yield return new WaitForSeconds(0.1f);
 			Log("Message closed");
 
-			DoStartup();
-			SaveConfig(); //save config with current mod version so it doesn't
-						  //show the message again next time.
+			//DoStartup();
+			//SaveConfig(); //save config with current mod version so it doesn't
+			//show the message again next time.
 
 			yield return null;
 		}
@@ -299,35 +311,8 @@ namespace JoystickCamera {
 		/// <param name="helper">UI Helper.</param>
 		public void OnSettingsUI(UIHelperBase helper) {
 			this.settingsUiHelper = helper;
-
-			if(loadedConfigVersion < 0) {
-				//Config wasn't loaded yet.
-				//Load it, but don't parse the input list yet
-				//because we don't have the device list.
-				TryLoadConfig(false);
-			}
-
-			if(loadedConfigModVersion < 20000) {
-				//Show message about scanning USB devices.
-				//If the config file was written by an older version than this,
-				//then we haven't shown the message yet.
-				UIView view = ((helper as UIHelper).self as UIComponent).GetUIView();
-				if(view == null) {
-					Log("UIView not found!? Something is wrong, but let's try to continue...");
-					DoStartup();
-				}
-				else {
-					Log("Showing USB warning message.");
-					view.StartCoroutine(PopupMessageCoroutine(view));
-					//the coroutine will initiate startup when message is closed.
-				}
-			}
-			else {
-				//Config file was written by version 2.00.00 or newer, which means
-				//we showed the message already, so go ahead and scan now.
-				Log("USB warning message was already shown before.");
-				DoStartup();
-			}
+			this.settingsPanel = new SettingsPanel(this, this.settingsUiHelper);
+			this.settingsPanel.Run();
 		}
 
 		#endregion Settings UI
@@ -341,14 +326,6 @@ namespace JoystickCamera {
 		public override void OnCreated(IThreading threading) {
 			base.OnCreated(threading);
 			Log("Created");
-
-			//this isn't really needed...
-			/* int numSticks = 0;
-			foreach(string name in Input.GetJoystickNames()) {
-				Log($"Joystick {numSticks}: {name}");
-				numSticks++;
-			}
-			Log($"Found {numSticks} joysticks"); */
 		}
 
 		/// <summary>

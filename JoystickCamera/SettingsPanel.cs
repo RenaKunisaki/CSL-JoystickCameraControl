@@ -10,8 +10,11 @@ namespace JoystickCamera {
 	/// </summary>
 	public class SettingsPanel {
 		protected JoystickCamera parent;
-		protected UIHelperBase helper;
+		protected UIHelperBase helper, mainGroup;
 		protected UIComponent root;
+		protected UICustomTabStrip tabStrip;
+		protected UITabContainer tabContainer;
+		protected UIPanelWrapper mainPanel;
 
 		public SettingsPanel(JoystickCamera parent, UIHelperBase helper) {
 			this.parent = parent;
@@ -25,12 +28,11 @@ namespace JoystickCamera {
 			this.root = ((helper as UIHelper).self as UIComponent);
 
 			//Add notes
-			UIHelperBase groupG = helper.AddGroup(" ");
-			var groupRoot = ((groupG as UIHelper).self as UIComponent);
-			var panel = this.AddPanel(groupRoot, "settings", 0, 0, 600, 2);
+			mainGroup = helper.AddGroup(" ");
+			var groupRoot = ((mainGroup as UIHelper).self as UIComponent);
+			mainPanel = this.AddPanel(groupRoot, "settings", 0, 0, 600, 2);
 
-			UICustomTabStrip tabStrip = panel.AddTabStrip("tabstrip",
-				out UITabContainer tabContainer);
+			tabStrip = mainPanel.AddTabStrip("tabstrip", out tabContainer);
 			tabStrip.relativePosition = new Vector3(0, -20, 0);
 			//tabContainer.backgroundSprite = "SubBarButtonBase"; //debug
 			/*
@@ -51,6 +53,23 @@ namespace JoystickCamera {
 			tabStrip.selectedIndex = 0;
 		}
 
+		/// <summary>
+		/// Update all widgets.
+		/// </summary>
+		public void Refresh() {
+			var groupRoot = ((mainGroup as UIHelper).self as UIComponent);
+			this.root.RemoveUIComponent(this.tabStrip);
+			this.root.RemoveUIComponent(this.tabContainer);
+			this.root.RemoveUIComponent(this.mainPanel.Panel);
+			this.root.RemoveUIComponent(groupRoot);
+			UnityEngine.Object.Destroy(this.tabStrip);
+			UnityEngine.Object.Destroy(this.tabContainer);
+			UnityEngine.Object.Destroy(this.mainPanel.Panel);
+			UnityEngine.Object.Destroy(groupRoot);
+			this.Run();
+			//XXX why does this add a gap at the top?
+		}
+
 		protected void AddGeneralTab(UICustomTabStrip tabStrip, UITabContainer tabContainer) {
 			UIButton tabButton = tabStrip.AddTab("General",
 				out UIPanelWrapper tabPanel, "General settings");
@@ -65,14 +84,29 @@ namespace JoystickCamera {
 				cameraController.Reset(Vector3.zero);
 			};
 
+			//Add USB toggle
+			tabPanel.AddCheckbox("usb", 0, 35, parent.enableUsbDevices,
+			"Use USB mice, joysticks, etc as inputs.")
+			.OnChange += (isChecked) => {
+				parent.enableUsbDevices = isChecked;
+				if(parent.enableUsbDevices) {
+					parent.EnumerateDevices();
+					parent.LoadConfig(); //re-read inputs
+					parent.enableUsbDevices = true; //loading config will reset it
+					this.Refresh();
+				}
+				parent.SaveConfig();
+			};
+			tabPanel.AddLabel("Scan for USB input devices", 20, 35);
+
 			//Add debug toggle
-			tabPanel.AddCheckbox("debug", 0, 35, parent.enableDebugDisplay,
+			tabPanel.AddCheckbox("debug", 0, 55, parent.enableDebugDisplay,
 			"Show debug info in-game.")
 			.OnChange += (isChecked) => {
 				parent.enableDebugDisplay = isChecked;
 				parent.SaveConfig();
 			};
-			tabPanel.AddLabel("Show Debug Info", 20, 35);
+			tabPanel.AddLabel("Show Debug Info", 20, 55);
 		}
 
 		protected void AddInputsTab(UICustomTabStrip tabStrip, UITabContainer tabContainer) {
