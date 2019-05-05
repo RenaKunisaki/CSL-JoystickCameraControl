@@ -99,14 +99,26 @@ namespace JoystickCamera {
 			};
 			tabPanel.AddLabel("Scan for USB input devices", 20, 35);
 
+			//Add restrict rotation toggle
+			tabPanel.AddCheckbox("restrictRotation", 0, 55, parent.restrictRotation,
+			"Restrict camera rotation to range normally allowed by game.")
+			.OnChange += (isChecked) => {
+				parent.restrictRotation = isChecked;
+				parent.SaveConfig();
+			};
+			tabPanel.AddLabel("Restrict Camera Rotation", 20, 55);
+			tabPanel.AddLabel("Unchecking this lets you rotate the camera freely.\n" +
+				"This can cause some glitches. To fix it, rotate back again\n" +
+				"or do a complete circle.", 20, 75);
+
 			//Add debug toggle
-			tabPanel.AddCheckbox("debug", 0, 55, parent.enableDebugDisplay,
+			tabPanel.AddCheckbox("debug", 0, 130, parent.enableDebugDisplay,
 			"Show debug info in-game.")
 			.OnChange += (isChecked) => {
 				parent.enableDebugDisplay = isChecked;
 				parent.SaveConfig();
 			};
-			tabPanel.AddLabel("Show Debug Info", 20, 55);
+			tabPanel.AddLabel("Show Debug Info", 20, 130);
 		}
 
 		protected void AddInputsTab(UICustomTabStrip tabStrip, UITabContainer tabContainer) {

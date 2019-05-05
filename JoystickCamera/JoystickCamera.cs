@@ -22,6 +22,7 @@ namespace JoystickCamera {
 		protected DebugCameraDisplay debugDisplay;
 		public bool enableDebugDisplay = false;
 		public bool enableUsbDevices = false;
+		public bool restrictRotation = true;
 		protected bool didEnumerateDevices = false;
 		protected bool didMoveWithMouse = false;
 		protected int loadedConfigVersion; //config file format version we loaded
@@ -155,6 +156,7 @@ namespace JoystickCamera {
 				configVersion = Version,
 				showDebugInfo = enableDebugDisplay,
 				useUsbDevices = enableUsbDevices,
+				restrictRotation = restrictRotation,
 			};
 
 			data.SetInputs(GetInputs());
@@ -177,6 +179,7 @@ namespace JoystickCamera {
 			this.loadedConfigModVersion = data.modVersion;
 			this.enableDebugDisplay = data.showDebugInfo;
 			this.enableUsbDevices = data.useUsbDevices;
+			this.restrictRotation = data.restrictRotation;
 
 			if(this.loadedConfigModVersion > this.Version) {
 				Log($"Loaded config from version {loadedConfigModVersion} " +
@@ -461,8 +464,10 @@ namespace JoystickCamera {
 			cameraController.m_targetAngle.x += rotate.x;
 			cameraController.m_targetAngle.y += rotate.y;
 			//The game doesn't like having the camera rotated outside of this range.
-			cameraController.m_targetAngle.y = Mathf.Clamp(cameraController.m_targetAngle.y,
-				0f, 90f);
+			if(restrictRotation) {
+				cameraController.m_targetAngle.y = Mathf.Clamp(
+					cameraController.m_targetAngle.y, 0f, 90f);
+			}
 			cameraController.m_targetSize += zoom;
 			//this seems to also be ignored...
 			//is the camera Y position not where the camera actually is in world space?

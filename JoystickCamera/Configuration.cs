@@ -35,6 +35,7 @@ namespace JoystickCamera {
 		public int configVersion = 0;
 		public bool showDebugInfo = false;
 		public bool useUsbDevices = false;
+		public bool restrictRotation = true;
 
 		[XmlArray("inputs")]
 		public List<InputDef> inputs;
