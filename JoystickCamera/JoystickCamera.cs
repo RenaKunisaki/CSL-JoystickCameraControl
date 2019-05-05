@@ -464,9 +464,10 @@ namespace JoystickCamera {
 			cameraController.m_targetAngle.x += rotate.x;
 			cameraController.m_targetAngle.y += rotate.y;
 			//The game doesn't like having the camera rotated outside of this range.
+			//(not sure the precise range)
 			if(restrictRotation) {
 				cameraController.m_targetAngle.y = Mathf.Clamp(
-					cameraController.m_targetAngle.y, 0f, 90f);
+					cameraController.m_targetAngle.y, -90f, 90f);
 			}
 			cameraController.m_targetSize += zoom;
 			//this seems to also be ignored...
