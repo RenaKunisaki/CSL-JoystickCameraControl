@@ -33,6 +33,7 @@ namespace JoystickCamera {
 
 		public int modVersion = 0;
 		public int configVersion = 0;
+		public bool showDebugInfo = false;
 
 		[XmlArray("inputs")]
 		public List<InputDef> inputs;

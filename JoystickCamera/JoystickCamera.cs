@@ -100,6 +100,7 @@ namespace JoystickCamera {
 			ConfigData data = new ConfigData {
 				modVersion = Version,
 				configVersion = Version,
+				showDebugInfo = enableDebugDisplay,
 			};
 
 			data.SetInputs(GetInputs());
@@ -110,11 +111,18 @@ namespace JoystickCamera {
 		/// <summary>
 		/// Loads the config.
 		/// </summary>
+		/// <param name="parse">Whether to parse the input list.
+		/// This is used because we need to check the version before
+		/// scanning for devices, but parse the input list after scanning,
+		/// or else all of the inputs will be rejected since the devices
+		/// "aren't present".</param>
 		public void LoadConfig(bool parse = true) {
 			Log("Loading config...");
 			var data = (new Configuration(this)).Load();
 			this.loadedConfigVersion = data.configVersion;
 			this.loadedConfigModVersion = data.modVersion;
+			this.enableDebugDisplay = data.showDebugInfo;
+
 			if(this.loadedConfigModVersion > this.Version) {
 				Log($"Loaded config from version {loadedConfigModVersion} " +
 					$"but we're only version {Version}!");
@@ -311,7 +319,7 @@ namespace JoystickCamera {
 				else {
 					Log("Showing USB warning message.");
 					view.StartCoroutine(PopupMessageCoroutine(view));
-					//the coroutine will initiate scan when message is closed.
+					//the coroutine will initiate startup when message is closed.
 				}
 			}
 			else {
