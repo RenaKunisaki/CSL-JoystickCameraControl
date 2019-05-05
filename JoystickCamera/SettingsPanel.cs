@@ -46,6 +46,7 @@ namespace JoystickCamera {
 			AddGeneralTab(tabStrip, tabContainer);
 			AddInputsTab(tabStrip, tabContainer);
 			AddCurrentInputsTab(tabStrip, tabContainer);
+			AddAboutTab(tabStrip, tabContainer);
 
 			tabStrip.selectedIndex = 0;
 		}
@@ -113,6 +114,35 @@ namespace JoystickCamera {
 			foreach(var src in parent.GetInputSources()) {
 				y = AddCurrentValues(src, tabPanel, y) + 20;
 			}
+		}
+
+		protected void AddAboutTab(UICustomTabStrip tabStrip, UITabContainer tabContainer) {
+			UIButton tabButton = tabStrip.AddTab("About",
+				out UIPanelWrapper tabPanel, "About this mod");
+
+			int verMajor = parent.Version / 10000;
+			int verMinor = (parent.Version / 100) % 100;
+			int verRev = parent.Version % 100;
+			tabPanel.AddLabel($"Joystick Camera Control v{verMajor}.{verMinor}.{verRev}" +
+				" by Rena\n" +
+				"\nThanks to:\n" +
+				"· Egi, boformer, Elektrix for help with the API.\n" +
+				"· tomarus for the UI code I \"borrowed\" from TerrainGen.\n" +
+				"· andrief for ilspymono, and the ilspy developers,\n" +
+				"  for tools necessary to find axis definitions.\n" +
+				"· Icons from Gnome project and The Noun Project.\n" +
+				"· My cat for reminding me to take breaks.\n"
+				, 0, 0);
+
+			tabPanel.AddButton("My mods on Steam Workshop", 0, 180, 250, 30).eventClicked += (component, eventParam) => {
+				Application.OpenURL("https://steamcommunity.com/id/renakunisaki/myworkshopfiles/?appid=255710");
+			};
+			tabPanel.AddButton("My Twitter", 0, 210, 100, 30).eventClicked += (component, eventParam) => {
+				Application.OpenURL("https://twitter.com/RenaKunisaki");
+			};
+			tabPanel.AddButton("Buy me a Coffee", 100, 210, 200, 30).eventClicked += (component, eventParam) => {
+				Application.OpenURL("https://ko-fi.com/renakunisaki");
+			};
 		}
 
 		/// <summary>
