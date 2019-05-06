@@ -81,6 +81,7 @@ namespace JoystickCamera {
 			}
 		};
 
+		public string deviceName; //in case inputSource == null (device not present)
 		public InputSource inputSource;
 		public string axis; //input axis name
 		public float speed; //how fast the camera moves
@@ -130,6 +131,7 @@ namespace JoystickCamera {
 		/// <param name="modifiers">Current modifier key states.</param>
 		/// <remarks>If the modifier conditions aren't satisfied, returns 0.</remarks>
 		public float Read(Dictionary<ModifierButton, bool> modifiers) {
+			if(this.inputSource == null) return 0;
 			if(!CheckModifiers(modifiers)) return 0;
 			float val = this.inputSource.GetAxis(this.axis).GetValue(this.smoothing);
 

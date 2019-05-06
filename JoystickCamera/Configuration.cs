@@ -37,6 +37,9 @@ namespace JoystickCamera {
 		public bool useUsbDevices = false;
 		public bool restrictRotation = true;
 
+		[XmlArray("knownDevices")]
+		public List<string> knownDevices;
+
 		[XmlArray("inputs")]
 		public List<InputDef> inputs;
 
@@ -61,10 +64,11 @@ namespace JoystickCamera {
 					device = parent.GetInputSource(input.device);
 					if(device == null) {
 						Log($"Device not found: '{input.device}'");
-						continue;
+						//continue;
 					}
 				}
 				inputDef = new JoystickInputDef {
+					deviceName = input.device,
 					inputSource = device,
 					axis = input.axis,
 					output = (JoystickInputDef.Output)outputIdx,
@@ -108,7 +112,7 @@ namespace JoystickCamera {
 			foreach(var input in inputs) {
 				var item = new InputDef {
 					output = input.Name,
-					device = input.inputSource.Name,
+					device = input.deviceName,
 					axis = input.axis,
 					speed = input.speed,
 					sign = input.sign,

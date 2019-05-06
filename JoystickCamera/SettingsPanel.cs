@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ColossalFramework.UI;
 using ICities;
 using UnityEngine;
+using System.Linq;
 
 namespace JoystickCamera {
 	/// <summary>
@@ -158,7 +159,7 @@ namespace JoystickCamera {
 
 			int y = 0;
 			foreach(var src in parent.GetInputSources()) {
-				y = AddCurrentValues(src, tabPanel, y) + 20;
+				y = AddCurrentValues(src.Key, src.Value, tabPanel, y) + 20;
 			}
 		}
 
@@ -199,8 +200,14 @@ namespace JoystickCamera {
 		/// </summary>
 		/// <remarks>This is helpful to find which axis maps to which physical
 		/// input on the joystick.</remarks>
-		protected int AddCurrentValues(InputSource source, UIPanelWrapper parent, int y) {
-			var name = source.Name;
+		protected int AddCurrentValues(string name, InputSource source, UIPanelWrapper parent, int y) {
+			parent.AddLabel(name, 100, y).textScale = 1.5f;
+
+			if(source == null) {
+				parent.AddLabel("Device not found or not available", 10, y + 20);
+				return y + 20;
+			}
+
 			var axisNames = source.GetAxisNames();
 			var axes = source.GetAxes();
 
@@ -209,7 +216,7 @@ namespace JoystickCamera {
 			int x = 0;
 			UIPanelWrapper panel = null;
 			bool isFirst = true;
-			parent.AddLabel(source.Name, 100, y).textScale = 1.5f;
+
 			y += 30;
 
 			foreach(string axis in axisNames) {
@@ -271,19 +278,12 @@ namespace JoystickCamera {
 			UIPanelWrapper panel = container.AddPanel(input.Name, 0, (int)bounds.y + 30, 600, 100);
 
 			var sources = parent.GetInputSources();
-			InputSource source = null;
-			var devNames = new List<string>(sources.Count);
-			int devIdx = -1;
-			for(int i = 0; i < sources.Count; i++) {
-				devNames.Add(sources[i].Name);
-				if(sources[i] == input.inputSource) {
-					devIdx = i;
-					source = sources[i];
-					//keep going, we need the names
-				}
-			}
+			InputSource source = sources[input.deviceName];
+			var devNames = sources.Keys.ToList();
 
-			var axisNames = input.inputSource.GetAxisNames();
+			string[] axisNames;
+			if(input.inputSource != null) axisNames = input.inputSource.GetAxisNames();
+			else axisNames = new string[] { "<device not found>" };
 			UIDropDown ddInput = null;
 
 			//Add device dropdown.
@@ -291,11 +291,12 @@ namespace JoystickCamera {
 			UIDropDown ddDevice = panel.AddDropdown(
 				name: "device", x: 70, y: 0, items: devNames.ToArray(),
 				tooltip: "Which input device to use.");
-			ddDevice.selectedIndex = devIdx;
+			ddDevice.selectedIndex = devNames.IndexOf(input.deviceName);
 			ddDevice.eventSelectedIndexChanged += (component, value) => {
-				input.inputSource = sources[value];
+				input.inputSource = sources[devNames[value]];
 				ddInput.selectedIndex = 0;
-				ddInput.items = input.inputSource.GetAxisNames();
+				if(input.inputSource != null) ddInput.items = input.inputSource.GetAxisNames();
+				else ddInput.items = new string[] { "<device not found>" };
 				parent.SaveConfig();
 			};
 

@@ -6,6 +6,7 @@ using ColossalFramework.UI;
 using ICities;
 using UnityEngine;
 using static JoystickCamera.JoystickInputDef;
+using System.Linq;
 
 namespace JoystickCamera {
 	public class JoystickCamera: ThreadingExtensionBase, IUserMod {
@@ -15,7 +16,6 @@ namespace JoystickCamera {
 		public readonly int ConfigVersion = 20000; //config file format version
 		public readonly float PI_OVER_180 = Mathf.PI / 180f;
 		protected List<JoystickInputDef> inputs;
-		protected List<InputSource> inputSources;
 		protected Dictionary<string, InputSource> inputSourceDict;
 		protected InputSource defaultInputSource;
 		protected SettingsPanel settingsPanel;
@@ -43,7 +43,6 @@ namespace JoystickCamera {
 
 			loadedConfigVersion = -1; //none loaded yet
 			defaultInputSource = new UnityInputSource();
-			inputSources = new List<InputSource> { defaultInputSource };
 			inputSourceDict = new Dictionary<string, InputSource> {
 				{ defaultInputSource.Name, defaultInputSource },
 			};
@@ -72,11 +71,11 @@ namespace JoystickCamera {
 		}
 
 		/// <summary>
-		/// Get list of input sources.
+		/// Get dict of input sources (name => source).
 		/// </summary>
 		/// <returns>The input sources.</returns>
-		public List<InputSource> GetInputSources() {
-			return inputSources;
+		public Dictionary<string, InputSource> GetInputSources() {
+			return inputSourceDict;
 		}
 
 		/// <summary>
@@ -101,12 +100,11 @@ namespace JoystickCamera {
 					//ensure unique name if multiple devices
 					var name = device.Name;
 					int idx = 2;
-					while(inputSourceDict.ContainsKey(name)) {
+					while(inputSourceDict.ContainsKey(name) && inputSourceDict[name] != null) {
 						name = $"{device.Name} #{idx}";
 						idx++;
 					}
 					var source = new HidInputSource(device, name);
-					inputSources.Add(source);
 					inputSourceDict[name] = source;
 				}
 				didEnumerateDevices = true;
@@ -157,7 +155,13 @@ namespace JoystickCamera {
 				showDebugInfo = enableDebugDisplay,
 				useUsbDevices = enableUsbDevices,
 				restrictRotation = restrictRotation,
+				knownDevices = new List<string>(inputSourceDict.Count - 1),
 			};
+			foreach(var item in inputSourceDict) {
+				if(item.Value != defaultInputSource) {
+					data.knownDevices.Add(item.Key);
+				}
+			}
 
 			data.SetInputs(GetInputs());
 			(new Configuration(this)).Save(data);
@@ -180,6 +184,12 @@ namespace JoystickCamera {
 			this.enableDebugDisplay = data.showDebugInfo;
 			this.enableUsbDevices = data.useUsbDevices;
 			this.restrictRotation = data.restrictRotation;
+
+			foreach(var device in data.knownDevices) {
+				if(!inputSourceDict.ContainsKey(device)) {
+					inputSourceDict[device] = null;
+				}
+			}
 
 			if(this.loadedConfigModVersion > this.Version) {
 				Log($"Loaded config from version {loadedConfigModVersion} " +
@@ -483,9 +493,9 @@ namespace JoystickCamera {
 		/// Poll all input sources for new state.
 		/// </summary>
 		protected void UpdateInputSources() {
-			foreach(var source in inputSources) {
+			foreach(var source in inputSourceDict.Values) {
 				try {
-					source.Update();
+					if(source != null) source.Update();
 				}
 				catch(IOException) {
 					//ignore, device probably was disconnected.
