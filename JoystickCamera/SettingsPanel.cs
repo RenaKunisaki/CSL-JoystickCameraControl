@@ -203,9 +203,9 @@ namespace JoystickCamera {
 		protected int AddCurrentValues(string name, InputSource source, UIPanelWrapper parent, int y) {
 			parent.AddLabel(name, 100, y).textScale = 1.5f;
 
-			if(source == null) {
-				parent.AddLabel("Device not found or not available", 10, y + 20);
-				return y + 20;
+			if(source == null || source is PlaceholderInputSource) {
+				parent.AddLabel("Device not found or not available", 10, y + 30);
+				return y + 40;
 			}
 
 			var axisNames = source.GetAxisNames();
@@ -278,7 +278,7 @@ namespace JoystickCamera {
 			UIPanelWrapper panel = container.AddPanel(input.Name, 0, (int)bounds.y + 30, 600, 100);
 
 			var sources = parent.GetInputSources();
-			InputSource source = sources[input.deviceName];
+			InputSource source = sources[input.inputSource.Name];
 			var devNames = sources.Keys.ToList();
 
 			string[] axisNames;
@@ -291,7 +291,7 @@ namespace JoystickCamera {
 			UIDropDown ddDevice = panel.AddDropdown(
 				name: "device", x: 70, y: 0, items: devNames.ToArray(),
 				tooltip: "Which input device to use.");
-			ddDevice.selectedIndex = devNames.IndexOf(input.deviceName);
+			ddDevice.selectedIndex = devNames.IndexOf(input.inputSource.Name);
 			ddDevice.eventSelectedIndexChanged += (component, value) => {
 				input.inputSource = sources[devNames[value]];
 				ddInput.selectedIndex = 0;

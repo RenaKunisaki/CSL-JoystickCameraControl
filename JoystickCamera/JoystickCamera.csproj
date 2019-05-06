@@ -61,6 +61,7 @@
     <Compile Include="InputSource.cs" />
     <Compile Include="UnityInputSource.cs" />
     <Compile Include="HidInputSource.cs" />
+    <Compile Include="PlaceholderInputSource.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

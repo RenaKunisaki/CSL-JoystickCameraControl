@@ -35,11 +35,11 @@ namespace JoystickCamera {
 			[XmlAttribute("name")]
 			public string name;
 
-			[XmlAttribute("numButtons")]
-			public int numButtons;
-
 			[XmlArray("axes")]
 			public List<string> axes;
+
+			[XmlArray("buttons")]
+			public List<string> buttons;
 		}
 
 		public int modVersion = 0;
@@ -75,11 +75,10 @@ namespace JoystickCamera {
 					device = parent.GetInputSource(input.device);
 					if(device == null) {
 						Log($"Device not found: '{input.device}'");
-						//continue;
+						continue;
 					}
 				}
 				inputDef = new JoystickInputDef {
-					deviceName = input.device,
 					inputSource = device,
 					axis = input.axis,
 					output = (JoystickInputDef.Output)outputIdx,
@@ -123,7 +122,7 @@ namespace JoystickCamera {
 			foreach(var input in inputs) {
 				var item = new InputDef {
 					output = input.Name,
-					device = input.deviceName,
+					device = input.inputSource.Name,
 					axis = input.axis,
 					speed = input.speed,
 					sign = input.sign,

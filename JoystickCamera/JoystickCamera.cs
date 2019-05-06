@@ -100,7 +100,8 @@ namespace JoystickCamera {
 					//ensure unique name if multiple devices
 					var name = device.Name;
 					int idx = 2;
-					while(inputSourceDict.ContainsKey(name) && inputSourceDict[name] != null) {
+					while(inputSourceDict.ContainsKey(name)
+					&& !(inputSourceDict[name] is PlaceholderInputSource)) {
 						name = $"{device.Name} #{idx}";
 						idx++;
 					}
@@ -161,8 +162,8 @@ namespace JoystickCamera {
 				if(item.Value != defaultInputSource) {
 					data.knownDevices.Add(new ConfigData.KnownDevice {
 						name = item.Key,
-						numButtons = item.Value.GetButtonNames().Length,
 						axes = item.Value.GetAxisNames().ToList(),
+						buttons = item.Value.GetButtonNames().ToList(),
 					});
 				}
 			}
@@ -191,7 +192,8 @@ namespace JoystickCamera {
 
 			foreach(var device in data.knownDevices) {
 				if(!inputSourceDict.ContainsKey(device.name)) {
-					inputSourceDict[device.name] = null;
+					inputSourceDict[device.name] = new PlaceholderInputSource(
+						device.name, device.axes.ToArray(), device.buttons.ToArray());
 				}
 			}
 

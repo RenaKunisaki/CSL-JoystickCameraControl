@@ -81,7 +81,6 @@ namespace JoystickCamera {
 			}
 		};
 
-		public string deviceName; //in case inputSource == null (device not present)
 		public InputSource inputSource;
 		public string axis; //input axis name
 		public float speed; //how fast the camera moves
