@@ -31,6 +31,17 @@ namespace JoystickCamera {
 			public List<ModifierDef> modifiers;
 		}
 
+		public class KnownDevice {
+			[XmlAttribute("name")]
+			public string name;
+
+			[XmlAttribute("numButtons")]
+			public int numButtons;
+
+			[XmlArray("axes")]
+			public List<string> axes;
+		}
+
 		public int modVersion = 0;
 		public int configVersion = 0;
 		public bool showDebugInfo = false;
@@ -38,7 +49,7 @@ namespace JoystickCamera {
 		public bool restrictRotation = true;
 
 		[XmlArray("knownDevices")]
-		public List<string> knownDevices;
+		public List<KnownDevice> knownDevices;
 
 		[XmlArray("inputs")]
 		public List<InputDef> inputs;

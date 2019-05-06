@@ -155,11 +155,15 @@ namespace JoystickCamera {
 				showDebugInfo = enableDebugDisplay,
 				useUsbDevices = enableUsbDevices,
 				restrictRotation = restrictRotation,
-				knownDevices = new List<string>(inputSourceDict.Count - 1),
+				knownDevices = new List<ConfigData.KnownDevice>(),
 			};
 			foreach(var item in inputSourceDict) {
 				if(item.Value != defaultInputSource) {
-					data.knownDevices.Add(item.Key);
+					data.knownDevices.Add(new ConfigData.KnownDevice {
+						name = item.Key,
+						numButtons = item.Value.GetButtonNames().Length,
+						axes = item.Value.GetAxisNames().ToList(),
+					});
 				}
 			}
 
@@ -186,8 +190,8 @@ namespace JoystickCamera {
 			this.restrictRotation = data.restrictRotation;
 
 			foreach(var device in data.knownDevices) {
-				if(!inputSourceDict.ContainsKey(device)) {
-					inputSourceDict[device] = null;
+				if(!inputSourceDict.ContainsKey(device.name)) {
+					inputSourceDict[device.name] = null;
 				}
 			}
 
