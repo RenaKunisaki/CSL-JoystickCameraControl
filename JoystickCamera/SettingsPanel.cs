@@ -47,6 +47,7 @@ namespace JoystickCamera {
 			tabContainer.height = this.root.height - 32;
 			tabContainer.relativePosition = new Vector3(0, 32, 0);
 			AddGeneralTab(tabStrip, tabContainer);
+			AddInstructionsTab(tabStrip, tabContainer);
 			AddInputsTab(tabStrip, tabContainer);
 			AddCurrentInputsTab(tabStrip, tabContainer);
 			AddAboutTab(tabStrip, tabContainer);
@@ -120,6 +121,40 @@ namespace JoystickCamera {
 				parent.SaveConfig();
 			};
 			tabPanel.AddLabel("Show Debug Info", 20, 135);
+		}
+
+		protected void AddInstructionsTab(UICustomTabStrip tabStrip, UITabContainer tabContainer) {
+			UIButton tabButton = tabStrip.AddTab("Instructions",
+				out UIPanelWrapper tabPanel, "How to use this mod");
+
+			tabPanel.AddLabel("You can select an input device, assign it to control the\n" +
+				"camera in some way, and add modifier buttons.\n\n" +
+				"· Device: Selects which device to use. You can use USB Human Input Devices\n" +
+				"  (eg mice, joysticks) as well as Unity's built-in input system.\n" +
+				"  (USB devices must be enabled in the General tab.)\n\n" +
+				"· Input Axis: Selects which axis to use on the device.\n" +
+				"  Use the Devices tab to see which is which.\n\n" +
+				"· Action: Selects what this axis will do.\n\n" +
+				"· Invert: Makes the axis move in the opposite direction.\n\n" +
+				"· Dead Zone: Inputs smaller than this (after adding the Offset) are ignored.\n" +
+				"  Useful for old joysticks that jitter when not being moved.\n\n" +
+				"· Offset: Added to the raw axis input. Useful for eg sliders that range from\n" +
+				"  0 to 100 when you want -50 to 50.\n\n" +
+				"· Smoothing: Whether to use Unity's input smoothing algorithm to make the\n" +
+				"  movement more smooth.\n\n" +
+				"· Relative: Uses the distance the axis has moved instead of its current\n" +
+				"  position. Useful for mice and trackballs.\n\n" +
+				"· Modifiers: You can use the same axis for multiple controls by assigning\n" +
+				"  modifiers to them. For example, create two inputs:\n" +
+				"  · Axis: X Axis;  Action: Move Left/Right;  Modifiers: Shift not held\n" +
+				"  · Axis: X Axis;  Action: Turn Left/Right;  Modifiers: Shift held\n" +
+				"  Now you can use the same input for both moving and rotating.\n\n" +
+				"  Mouse buttons and up to 20 joystick buttons can be used as modifiers;\n" +
+				"  just scroll down in the list (even if the scrollbar is missing).\n" +
+				"  If an input has multiple modifiers, they must all be satisfied.\n\n" +
+				"If things get completely broken, use the Reset Camera button in the General\n" +
+				"tab to get back to a sane state."
+				, 0, 0);
 		}
 
 		protected void AddInputsTab(UICustomTabStrip tabStrip, UITabContainer tabContainer) {
