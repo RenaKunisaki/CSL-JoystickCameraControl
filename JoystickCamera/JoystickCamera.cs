@@ -150,27 +150,32 @@ namespace JoystickCamera {
 		/// </summary>
 		public void SaveConfig() {
 			Log("Saving config...");
-			ConfigData data = new ConfigData {
-				modVersion = Version,
-				configVersion = Version,
-				showDebugInfo = enableDebugDisplay,
-				useUsbDevices = enableUsbDevices,
-				restrictRotation = restrictRotation,
-				knownDevices = new List<ConfigData.KnownDevice>(),
-			};
-			foreach(var item in inputSourceDict) {
-				if(item.Value != defaultInputSource) {
-					data.knownDevices.Add(new ConfigData.KnownDevice {
-						name = item.Key,
-						axes = item.Value.GetAxisNames().ToList(),
-						buttons = item.Value.GetButtonNames().ToList(),
-					});
+			try {
+				ConfigData data = new ConfigData {
+					modVersion = Version,
+					configVersion = Version,
+					showDebugInfo = enableDebugDisplay,
+					useUsbDevices = enableUsbDevices,
+					restrictRotation = restrictRotation,
+					knownDevices = new List<ConfigData.KnownDevice>(),
+				};
+				foreach(var item in inputSourceDict) {
+					if(item.Value != defaultInputSource) {
+						data.knownDevices.Add(new ConfigData.KnownDevice {
+							name = item.Key,
+							axes = item.Value.GetAxisNames().ToList(),
+							buttons = item.Value.GetButtonNames().ToList(),
+						});
+					}
 				}
-			}
 
-			data.SetInputs(GetInputs());
-			(new Configuration(this)).Save(data);
-			Log("Saved config.");
+				data.SetInputs(GetInputs());
+				(new Configuration(this)).Save(data);
+				Log("Saved config.");
+			}
+			catch(Exception ex) {
+				Log($"Error saving config: {ex}");
+			}
 		}
 
 		/// <summary>
@@ -238,6 +243,7 @@ namespace JoystickCamera {
 		protected void AddDefaultInputs() {
 			inputs.Add(new JoystickInputDef {
 				axis = "Horizontal",
+				inputSource = defaultInputSource,
 				output = JoystickInputDef.Output.CAMERA_MOVE_X,
 				speed = 100,
 				modifiers = new List<Modifier> {
@@ -246,6 +252,7 @@ namespace JoystickCamera {
 			});
 			inputs.Add(new JoystickInputDef {
 				axis = "Vertical",
+				inputSource = defaultInputSource,
 				output = JoystickInputDef.Output.CAMERA_MOVE_Z,
 				speed = 100,
 				modifiers = new List<Modifier> {
@@ -254,11 +261,13 @@ namespace JoystickCamera {
 			});
 			inputs.Add(new JoystickInputDef {
 				axis = "RotationHorizontalCamera",
+				inputSource = defaultInputSource,
 				output = JoystickInputDef.Output.CAMERA_TURN_X,
 				speed = 5,
 			});
 			inputs.Add(new JoystickInputDef {
 				axis = "RotationVerticalCamera",
+				inputSource = defaultInputSource,
 				output = JoystickInputDef.Output.CAMERA_ZOOM,
 				speed = 5,
 			});

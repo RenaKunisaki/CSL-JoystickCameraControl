@@ -118,8 +118,13 @@ namespace JoystickCamera {
 		/// </summary>
 		/// <param name="inputs">Inputs.</param>
 		public void SetInputs(List<JoystickInputDef> inputs) {
+			if(inputs == null) throw new ArgumentNullException(nameof(inputs));
 			this.inputs = new List<InputDef>(inputs.Count);
 			foreach(var input in inputs) {
+				if(input == null) throw new ArrayTypeMismatchException("null entry in inputs");
+				if(input.inputSource == null) {
+					throw new ArrayTypeMismatchException($"Input {input.Name} has no source");
+				}
 				var item = new InputDef {
 					output = input.Name,
 					device = input.inputSource.Name,
