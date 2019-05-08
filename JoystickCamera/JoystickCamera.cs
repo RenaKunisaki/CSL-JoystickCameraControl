@@ -32,6 +32,15 @@ namespace JoystickCamera {
 		//debug
 		public bool DidMoveWithMouse { get => didMoveWithMouse; }
 
+		public string VersionString {
+			get {
+				string vMajor = (Version / 10000).ToString();
+				string vMinor = ((Version / 100) % 100).ToString("0#");
+				string vPatch = (Version % 100).ToString("0#");
+				return $"{vMajor}.{vMinor}.{vPatch}";
+			}
+		}
+
 		public JoystickCamera() {
 			Log("Instantiated");
 

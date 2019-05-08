@@ -202,10 +202,7 @@ namespace JoystickCamera {
 			UIButton tabButton = tabStrip.AddTab("About",
 				out UIPanelWrapper tabPanel, "About this mod");
 
-			int verMajor = parent.Version / 10000;
-			int verMinor = (parent.Version / 100) % 100;
-			int verRev = parent.Version % 100;
-			tabPanel.AddLabel($"Joystick Camera Control v{verMajor}.{verMinor}.{verRev}" +
+			tabPanel.AddLabel($"Joystick Camera Control v{parent.VersionString}" +
 				" by Rena\n" +
 				"\nThanks to:\n" +
 				"· Egi, boformer, Elektrix for help with the API.\n" +
