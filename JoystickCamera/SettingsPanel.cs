@@ -326,7 +326,7 @@ namespace JoystickCamera {
 			UIPanelWrapper panel = container.AddPanel(input.Name, 0, (int)bounds.y + 30, 600, 100);
 
 			var sources = parent.GetInputSources();
-			Log($"sources={sources.ToString()}");
+			//JoystickCamera.Log($"sources={sources.ToString()}");
 			//InputSource source = sources[input.inputSource.Name];
 			var devNames = sources.Keys.ToList();
 
@@ -339,7 +339,7 @@ namespace JoystickCamera {
 			else axisNames = new string[] { "<device not found>" };
 			UIDropDown ddInput = null;
 
-			Log($"axisNames={axisNames.ToString()}; adding device dropdown");
+			//JoystickCamera.Log($"axisNames={axisNames.ToString()}; adding device dropdown");
 
 			//Add device dropdown.
 			panel.AddLabel("Device:", 0, 5);
@@ -356,7 +356,7 @@ namespace JoystickCamera {
 			};
 
 			//Add input dropdown.
-			Log("Adding input dropdown");
+			//JoystickCamera.Log("Adding input dropdown");
 			panel.AddLabel("Input:", 300, 5);
 			ddInput = panel.AddDropdown(
 				name: "input", x: 350, y: 0, items: axisNames,
@@ -369,7 +369,7 @@ namespace JoystickCamera {
 			};
 
 			//Add output dropdown.
-			Log("Adding output dropdown");
+			//JoystickCamera.Log("Adding output dropdown");
 			panel.AddLabel("Action:", 0, 30);
 			UIDropDown ddOutput = panel.AddDropdown(
 				name: "output", x: 70, y: 30, items: JoystickInputDef.OutputName,
@@ -381,7 +381,7 @@ namespace JoystickCamera {
 			};
 
 			//Add speed slider.
-			Log("Adding speed slider");
+			//JoystickCamera.Log("Adding speed slider");
 			panel.AddLabel("Movement Speed:", 300, 30);
 			panel.AddSlider(name: "speed", x: 450, y: 30,
 				value: input.speed, min: input.minSpeed,
@@ -393,7 +393,7 @@ namespace JoystickCamera {
 				};
 
 			//Add offset slider.
-			Log("Adding offset slider");
+			//JoystickCamera.Log("Adding offset slider");
 			panel.AddLabel("Offset:", 385, 60);
 			panel.AddSlider(name: "offset", x: 450, y: 60, value: input.offset * 100,
 				min: -100, max: 100, step: 1, tooltip: "Offset added to input.")
@@ -403,7 +403,7 @@ namespace JoystickCamera {
 				};
 
 			//Add deadzone slider.
-			Log("Adding deadzone slider");
+			//JoystickCamera.Log("Adding deadzone slider");
 			panel.AddLabel("Dead Zone:", 350, 90);
 			panel.AddSlider(name: "deadzone", x: 450, y: 90,
 				value: input.deadZone * 100, min: 0, max: 100, step: 1,
@@ -414,7 +414,7 @@ namespace JoystickCamera {
 				};
 
 			//Add invert checkbox.
-			Log("Adding invert checkbox");
+			//JoystickCamera.Log("Adding invert checkbox");
 			panel.AddCheckbox("invert", 0, 60, input.sign < 0,
 			"Move in opposite direction.")
 			.OnChange += (isChecked) => {
@@ -424,7 +424,7 @@ namespace JoystickCamera {
 			panel.AddLabel("Invert", 20, 60);
 
 			//Add smoothing checkbox.
-			Log("Adding smooothing checkbox");
+			//JoystickCamera.Log("Adding smooothing checkbox");
 			panel.AddCheckbox("smoothing", 85, 60, input.smoothing,
 			"Use Unity's input smoothing.")
 			.OnChange += (isChecked) => {
@@ -434,7 +434,7 @@ namespace JoystickCamera {
 			panel.AddLabel("Smoothing", 105, 60);
 
 			//Add relative checkbox.
-			Log("Adding relative checkbox");
+			//JoystickCamera.Log("Adding relative checkbox");
 			panel.AddCheckbox("relative", 200, 60, input.relative,
 			"Use relative input values.")
 			.OnChange += (isChecked) => {
@@ -444,7 +444,7 @@ namespace JoystickCamera {
 			panel.AddLabel("Relative", 220, 60);
 
 			//Add delete button.
-			Log("Adding delete button");
+			//JoystickCamera.Log("Adding delete button");
 			UIButton btnDelete = panel.AddButton("Delete Input", 575, 0, 110, 20,
 				"Delete this input.");
 			btnDelete.eventClicked += (component, eventParam) => {
@@ -458,7 +458,7 @@ namespace JoystickCamera {
 			};
 
 			//Add modifiers header.
-			Log("Adding AddMod button");
+			//JoystickCamera.Log("Adding AddMod button");
 			panel.AddLabel("Modifiers:", 0, 85);
 			UIButton btnAddMod = panel.AddButton("Add Modifier",
 				90, 85, 110, 20, "Add a modifier");
@@ -473,15 +473,15 @@ namespace JoystickCamera {
 			};
 
 			//Add modifiers.
-			Log("Adding modifiers");
-			Log($"Mods: {input.modifiers.ToString()}");
+			//JoystickCamera.Log("Adding modifiers");
+			//JoystickCamera.Log($"Mods: {input.modifiers.ToString()}");
 			int y = 120;
 			foreach(var mod in input.modifiers) {
 				AddModifierWidgets(input, mod, panel, y);
 				y += 25;
 			}
 			panel.height = y;
-			Log("Done adding input");
+			//JoystickCamera.Log("Done adding input");
 		}
 
 		/// <summary>
@@ -541,26 +541,5 @@ namespace JoystickCamera {
 				panel.Remove(SubPanel.Panel);
 			};
 		}
-
-		#region logging
-
-		/// <summary>
-		/// Writes a message to the debug logs. "JoystickCamera" tag
-		/// and timestamp are automatically prepended.
-		/// </summary>
-		/// <param name="message">Message.</param>
-		public static void Log(String message) {
-			String time = DateTime.Now.ToUniversalTime()
-				.ToString("yyyyMMdd' 'HHmmss'.'fff");
-			message = $"{time}: {message}{Environment.NewLine}";
-			try {
-				UnityEngine.Debug.Log("[JoystickCamera] " + message);
-			}
-			catch(NullReferenceException) {
-				//Happens if Unity logger isn't set up yet
-			}
-		}
-
-		#endregion logging
 	}
 }

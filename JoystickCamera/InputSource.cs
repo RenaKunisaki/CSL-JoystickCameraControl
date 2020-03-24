@@ -83,11 +83,23 @@ namespace JoystickCamera {
 		}
 
 		public Axis GetAxis(string name) {
-			return this.axes[name];
+			try {
+				return this.axes[name];
+			}
+			catch(KeyNotFoundException) {
+				JoystickCamera.Log($"Axis '{name}' not found on InputSource '{name}'");
+				return null;
+			}
 		}
 
 		public Button GetButton(string name) {
-			return this.buttons[name];
+			try {
+				return this.buttons[name];
+			}
+			catch(KeyNotFoundException) {
+				JoystickCamera.Log($"Button '{name}' not found on InputSource '{name}'");
+				return null;
+			}
 		}
 	}
 }
