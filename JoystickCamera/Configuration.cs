@@ -47,6 +47,7 @@ namespace JoystickCamera {
 		public bool showDebugInfo = false;
 		public bool useUsbDevices = false;
 		public bool restrictRotation = true;
+		public float heightScaleFactor = 0;
 
 		[XmlArray("knownDevices")]
 		public List<KnownDevice> knownDevices;

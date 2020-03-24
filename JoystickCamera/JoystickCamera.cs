@@ -2,17 +2,17 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using ColossalFramework.UI;
 using ICities;
 using UnityEngine;
 using static JoystickCamera.JoystickInputDef;
-using System.Linq;
 
 namespace JoystickCamera {
 	public class JoystickCamera: ThreadingExtensionBase, IUserMod {
-		public string Name => "Joystick Camera Control (v2.00.01)";
+		public string Name => "Joystick Camera Control (v2.00.03)";
 		public string Description => "Use a joystick, extra mice, etc to control the camera.";
-		public readonly int Version = 20001; //Mod version (2.00.01)
+		public readonly int Version = 20003; //Mod version (2.00.03)
 		public readonly int ConfigVersion = 20000; //config file format version
 		public readonly float PI_OVER_180 = Mathf.PI / 180f;
 		protected List<JoystickInputDef> inputs;
@@ -20,6 +20,7 @@ namespace JoystickCamera {
 		protected InputSource defaultInputSource;
 		protected SettingsPanel settingsPanel;
 		protected DebugCameraDisplay debugDisplay;
+		public float heightScaleFactor = 0;
 		public bool enableDebugDisplay = false;
 		public bool enableUsbDevices = false;
 		public bool restrictRotation = true;
@@ -167,6 +168,7 @@ namespace JoystickCamera {
 					useUsbDevices = enableUsbDevices,
 					restrictRotation = restrictRotation,
 					knownDevices = new List<ConfigData.KnownDevice>(),
+					heightScaleFactor = heightScaleFactor,
 				};
 				foreach(var item in inputSourceDict) {
 					if(item.Value != defaultInputSource) {
@@ -203,6 +205,7 @@ namespace JoystickCamera {
 			this.enableDebugDisplay = data.showDebugInfo;
 			this.enableUsbDevices = data.useUsbDevices;
 			this.restrictRotation = data.restrictRotation;
+			this.heightScaleFactor = data.heightScaleFactor;
 
 			foreach(var device in data.knownDevices) {
 				if(!inputSourceDict.ContainsKey(device.name)) {
@@ -442,7 +445,7 @@ namespace JoystickCamera {
 			GameObject gameObject = GameObject.FindGameObjectWithTag("MainCamera");
 			if(gameObject == null) return;
 			UpdateInputSources();
-			UpdateDebugDisplay();
+			UpdateDebugDisplay(realTimeDelta, simulationTimeDelta);
 			GetTransforms(realTimeDelta, out Vector3 translateRelative,
 				out Vector3 translateWorld, out Vector2 rotate, out float zoom,
 				out Dictionary<ModifierButton, bool> modifiers);
@@ -451,6 +454,15 @@ namespace JoystickCamera {
 			CameraController cameraController = gameObject.GetComponent<CameraController>();
 			Vector3 currentPos = cameraController.m_currentPosition;
 			Vector3 targetPos = currentPos;
+
+			//Apply height scaling
+			float height = CurrentHeightScale;
+			if(height > 0) {
+				translateRelative.x *= height;
+				translateRelative.z *= height;
+				translateWorld.x *= height;
+				translateWorld.z *= height;
+			}
 
 			//Transform relative to camera angle
 			//Ignore Y rotation, only use X (which is actually the Y axis rotation >.>)
@@ -513,6 +525,19 @@ namespace JoystickCamera {
 
 		#endregion ThreadingExtensionBase
 
+		public float CurrentHeightScale {
+			get {
+				GameObject gameObject = GameObject.FindGameObjectWithTag("MainCamera");
+				if(gameObject == null) return 0;
+				CameraController cameraController = gameObject.GetComponent<CameraController>();
+				//44000 seems to be max height, but let's use a bit less
+				float f = (cameraController.m_currentSize / 22000f) * heightScaleFactor;
+				if(f < 0f) f = 0f;
+				if(f > 1f) f = 1f;
+				return f;
+			}
+		}
+
 		/// <summary>
 		/// Poll all input sources for new state.
 		/// </summary>
@@ -531,13 +556,13 @@ namespace JoystickCamera {
 		/// <summary>
 		/// Refresh the debug display, creating/destroying it if necessary.
 		/// </summary>
-		protected void UpdateDebugDisplay() {
+		protected void UpdateDebugDisplay(float realTimeDelta, float simulationTimeDelta) {
 			if(enableDebugDisplay) {
 				if(this.debugDisplay == null) {
 					Log("Creating debug display");
 					this.debugDisplay = new DebugCameraDisplay(this);
 				}
-				this.debugDisplay.Update();
+				this.debugDisplay.Update(realTimeDelta, simulationTimeDelta);
 			}
 			else {
 				if(this.debugDisplay != null) {

@@ -68,6 +68,14 @@
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
+    <PreBuildEvent Condition="'$(OS)' == 'Windows_NT' ">
+      mkdir "(ProjectDir)\Resources"
+      echo %date% %time% &gt; "$(ProjectDir)\Resources\BuildDate.txt"
+    </PreBuildEvent>
+    <PreBuildEvent Condition="'$(OS)' != 'Windows_NT' ">
+      mkdir -p "$(ProjectDir)\Resources"
+      date -uIseconds &gt; "$(ProjectDir)\Resources\BuildDate.txt"
+    </PreBuildEvent>
     <PostBuildEvent Condition="'$(OS)' == 'Windows_NT' ">mkdir "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)"
 del "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)\$(TargetFileName)"
 xcopy /Y "$(TargetPath)" "%25LOCALAPPDATA%25\Colossal Order\Cities_Skylines\Addons\Mods\$(SolutionName)"

@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Linq;
 using ColossalFramework.UI;
 using ICities;
 using UnityEngine;
-using System.Linq;
 
 namespace JoystickCamera {
 	/// <summary>
@@ -121,7 +120,23 @@ namespace JoystickCamera {
 				parent.SaveConfig();
 			};
 			tabPanel.AddLabel("Show Debug Info", 20, 135);
+
+			//Add height scale
+			tabPanel.AddLabel("Height Scaling Factor:", 0, 165);
+			tabPanel.AddSlider(name: "heightScale", x: 200, y: 165,
+				value: parent.heightScaleFactor * 100, min: 0,
+				max: 200, step: 10,
+				tooltip: "Multiplier to move the camera slower when zoomed in.")
+				.eventValueChanged += (component, value) => {
+					parent.heightScaleFactor = value / 100;
+					parent.SaveConfig();
+				};
+			tabPanel.AddLabel("Increasing this will make the camera move slower\n" +
+				"when it's zoomed in, so that you can move more precisely.\n" +
+				"Set it to 0 to disable this behaviour.\n" +
+				"This only applies to camera movement done by this mod.", 20, 185);
 		}
+
 
 		protected void AddInstructionsTab(UICustomTabStrip tabStrip, UITabContainer tabContainer) {
 			UIButton tabButton = tabStrip.AddTab("Instructions",
@@ -417,8 +432,11 @@ namespace JoystickCamera {
 			btnDelete.eventClicked += (component, eventParam) => {
 				parent.RemoveInput(input);
 				parent.SaveConfig();
-				root.parent.RemoveUIComponent(root);
-				UnityEngine.Object.Destroy(root);
+				//don't do this, it removes the entire page
+				//root.parent.RemoveUIComponent(root);
+				//UnityEngine.Object.Destroy(root);
+				container.Remove(panel.Panel);
+				//BUG: this leaves an empty space where the panel was.
 			};
 
 			//Add modifiers header.

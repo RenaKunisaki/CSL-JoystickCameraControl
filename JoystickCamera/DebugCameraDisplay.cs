@@ -11,6 +11,7 @@ namespace JoystickCamera {
 		protected JoystickCamera parent;
 		protected UIPanelWrapper panel;
 		protected Dictionary<string, UICustomLabel> labels;
+		protected long frameCount = 0;
 
 		public DebugCameraDisplay(JoystickCamera parent) {
 			this.parent = parent;
@@ -48,10 +49,13 @@ namespace JoystickCamera {
 				{ "ytang",   panel.AddLabel("", 160,  70) },
 				{ "height",  panel.AddLabel("",  80,  84) },
 				{ "theight", panel.AddLabel("", 160,  84) },
+				{ "sheight", panel.AddLabel("", 240,  84) },
 				{ "size",    panel.AddLabel("",  80,  98) },
 				{ "tsize",   panel.AddLabel("", 160,  98) },
 				{ "target",  panel.AddLabel("",   0, 112) },
-				{ "moving",  panel.AddLabel("",   0, 126) },
+				{ "frame",   panel.AddLabel("",   0, 126) },
+				{ "simtime", panel.AddLabel("", 160, 126) },
+				{ "moving",  panel.AddLabel("",   0, 140) },
 				//{ "input",   panel.AddLabel("",   0, 140) },
 			};
 		}
@@ -64,13 +68,26 @@ namespace JoystickCamera {
 			UnityEngine.Object.Destroy(this.panel.Panel);
 		}
 
-		public void Update() {
+		public void Update(float realTimeDelta, float simulationTimeDelta) {
+			frameCount++;
+			this.labels["frame"].text = $"Frame {frameCount}";
+
 			GameObject gameObject = GameObject.FindGameObjectWithTag("MainCamera");
-			if(gameObject == null) return;
+			if(gameObject == null) {
+				this.labels["moving"].text = "Can't find camera!";
+				return;
+			}
 
 			CameraController cameraController = gameObject.GetComponent<CameraController>();
 			Camera camera = RenderManager.instance.CurrentCameraInfo.m_camera;
-			if(cameraController == null || camera == null) return;
+			if(cameraController == null) {
+				this.labels["moving"].text = "Can't find camera controller!";
+				return;
+			}
+			if(camera == null) {
+				this.labels["moving"].text = "Camera controller has no camera!";
+				return;
+			}
 
 			string target = "none";
 			InstanceID targetID = cameraController.GetTarget();
@@ -112,6 +129,7 @@ namespace JoystickCamera {
 				{"ytang",   cameraController.m_targetAngle.y },
 				{"height",  cameraController.m_currentHeight },
 				{"theight", cameraController.m_targetHeight },
+				{"sheight", parent.CurrentHeightScale },
 				{"size",    cameraController.m_currentSize },
 				{"tsize",   cameraController.m_targetSize },
 			};
@@ -134,8 +152,12 @@ namespace JoystickCamera {
 							item.Value.text = $"Input {x}\t{y}\nPrev {px}\t{py}";
 							break;
 						}
+					case "frame": break; //we did this earlier
+					case "simtime":
+						item.Value.text = (realTimeDelta * 1000f).ToString("###0") + "ms";
+						break;
 					default:
-						item.Value.text = values[item.Key].ToString("###0.000");
+						item.Value.text = values[item.Key].ToString("###0.00");
 						break;
 				}
 			}
